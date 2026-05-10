@@ -436,7 +436,16 @@ function CalendarGrid({ state }: { state: AppState }) {
 }
 
 function buildTimeline(state: AppState, filter: TimelineFilter) {
-  const doseEntries = state.doseLogs.map((log) => ({ id: log.id, date: log.loggedAt, type: "Doses", title: log.status === "taken" ? "Dose taken" : "Dose update", body: `${log.scheduledDoseId} marked ${log.status}. ${log.notes}` }));
+  const recentTakenIds = new Set(
+    state.doseLogs
+      .filter((log) => log.status === "taken")
+      .sort((a, b) => b.loggedAt.localeCompare(a.loggedAt))
+      .slice(0, 5)
+      .map((log) => log.id)
+  );
+  const doseEntries = state.doseLogs
+    .filter((log) => log.status !== "taken" || recentTakenIds.has(log.id))
+    .map((log) => ({ id: log.id, date: log.loggedAt, type: "Doses", title: log.status === "taken" ? "Dose taken" : "Dose update", body: `${log.scheduledDoseId} marked ${log.status}. ${log.notes}` }));
   const metricEntries = state.metricEntries.map((entry) => {
     const metric = state.metricConfigs.find((config) => config.id === entry.metricId);
     return { id: entry.id, date: entry.date, type: metric?.category === "Side Effects" ? "Side effects" : "Metrics", title: `${metric?.name || "Metric"} logged`, body: `Value: ${entry.value}` };

@@ -78,6 +78,7 @@ export interface ProtocolItem {
   peptideId: string;
   schedule: Schedule;
   doseAmount: string;
+  doseUnit?: DoseUnit;
   instructions?: string;
 }
 

@@ -413,6 +413,26 @@ textarea.field { resize: vertical; }
   border-radius: 20px;
   background: rgba(255,255,255,0.035);
 }
+.field-label {
+  display: grid;
+  gap: 7px;
+}
+.field-label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.protocol-dose-grid {
+  display: grid;
+  grid-template-columns: 1fr 138px;
+  gap: 10px;
+}
+.time-builder {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
 .toggle-line {
   display: flex;
   align-items: center;
@@ -1108,4 +1128,5 @@ textarea.field { resize: vertical; }
   .metric-log-row, .metric-config, .module-grid, .metric-dashboard, .photo-compare, .export-row { grid-template-columns: 1fr; }
   .chart-grid, .builder-grid, .template-grid, .inventory-grid, .compare-panel, .lab-grid { grid-template-columns: 1fr; }
   .range-row { grid-template-columns: repeat(3, 1fr); }
+  .protocol-dose-grid, .time-builder { grid-template-columns: 1fr; }
 }

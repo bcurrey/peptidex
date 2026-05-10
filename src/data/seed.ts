@@ -366,6 +366,7 @@ export const seedState: AppState = {
           id: "item-bpc-am",
           peptideId: "pep-bpc",
           doseAmount: "250",
+          doseUnit: "mcg",
           instructions: "Fasted",
           schedule: {
             id: "schedule-bpc-am",
@@ -379,6 +380,7 @@ export const seedState: AppState = {
           id: "item-nad-mid",
           peptideId: "pep-nad",
           doseAmount: "100",
+          doseUnit: "mg",
           instructions: "With food",
           schedule: {
             id: "schedule-nad-mid",
@@ -392,6 +394,7 @@ export const seedState: AppState = {
           id: "item-tb-bed",
           peptideId: "pep-tb500",
           doseAmount: "2",
+          doseUnit: "mg",
           instructions: "Before bed",
           schedule: {
             id: "schedule-tb-bed",

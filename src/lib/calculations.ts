@@ -35,7 +35,7 @@ export const generateScheduledDoses = (protocols: Protocol[], peptides: Peptide[
               peptideId: item.peptideId,
               scheduledAt,
               doseAmount: item.doseAmount,
-              doseUnit: peptide.doseUnit,
+              doseUnit: item.doseUnit || peptide.doseUnit,
               instructions: item.instructions,
             });
           });

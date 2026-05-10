@@ -3,9 +3,30 @@ import { Bell, Plus } from "lucide-react";
 import { ProtocolCard } from "../components/ProtocolCard";
 import { Button, Card, Input, ScreenHeader, Select } from "../components/ui";
 import { calculateCompliance } from "../lib/calculations";
-import { AppState, Protocol, ProtocolItem } from "../types";
+import { AppState, DoseUnit, Protocol, ProtocolItem } from "../types";
 
 const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
+const doseUnits: DoseUnit[] = ["mcg", "mg", "IU", "units", "mL", "capsule", "tablet"];
+
+const toTimeParts = (time?: string) => {
+  const [hourRaw = "8", minuteRaw = "00"] = (time || "08:00").split(":");
+  const hour24 = Number(hourRaw);
+  const period = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 || 12;
+  return { hour: String(hour12), minute: minuteRaw.padStart(2, "0"), period };
+};
+
+const fromTimeParts = (hour: string, minute: string, period: string) => {
+  let hour24 = Number(hour);
+  if (period === "PM" && hour24 !== 12) hour24 += 12;
+  if (period === "AM" && hour24 === 12) hour24 = 0;
+  return `${String(hour24).padStart(2, "0")}:${minute.padStart(2, "0")}`;
+};
+
+const displayTime = (time: string) => {
+  const parts = toTimeParts(time);
+  return `${parts.hour}:${parts.minute} ${parts.period}`;
+};
 
 const newProtocol = (): Protocol => ({
   id: "",
@@ -37,6 +58,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
       id: `item-${crypto.randomUUID()}`,
       peptideId: peptide.id,
       doseAmount: peptide.defaultDose,
+      doseUnit: peptide.doseUnit,
       instructions: "With food",
       schedule: {
         id: `schedule-${crypto.randomUUID()}`,
@@ -87,6 +109,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
                   id: `item-${crypto.randomUUID()}`,
                   peptideId: peptide.id,
                   doseAmount: peptide.defaultDose,
+                  doseUnit: peptide.doseUnit,
                   instructions: "User-defined",
                   schedule: {
                     id: `schedule-${crypto.randomUUID()}`,
@@ -127,16 +150,57 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
           </div>
           {editing.items.map((item) => {
             const peptide = state.peptides.find((p) => p.id === item.peptideId);
+            const time = item.schedule.preferredTimes[0] || "08:00";
+            const timeParts = toTimeParts(time);
             return (
               <div className="nested-card" key={item.id}>
-                <Select value={item.peptideId} onChange={(e) => updateItem({ ...item, peptideId: e.target.value })} title="Choose which peptide/item this schedule is for.">
+                <label className="field-label">
+                  <span>Protocol item</span>
+                  <Select value={item.peptideId} onChange={(e) => {
+                    const selected = state.peptides.find((pep) => pep.id === e.target.value);
+                    updateItem({ ...item, peptideId: e.target.value, doseUnit: item.doseUnit || selected?.doseUnit });
+                  }} title="Choose which peptide/item this schedule is for.">
                   {state.peptides.map((pep) => <option value={pep.id} key={pep.id}>{pep.name}</option>)}
-                </Select>
-                <div className="two-col">
-                  <Input value={item.doseAmount} onChange={(e) => updateItem({ ...item, doseAmount: e.target.value })} placeholder="Dose amount" title="User-entered dose note for this protocol item." />
-                  <Input value={item.schedule.preferredTimes.join(", ")} onChange={(e) => updateItem({ ...item, schedule: { ...item.schedule, preferredTimes: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) } })} placeholder="Preferred times" title="Comma-separated preferred times, like 07:30, 21:30." />
+                  </Select>
+                </label>
+                <div className="protocol-dose-grid">
+                  <label className="field-label">
+                    <span>Dose amount</span>
+                    <Input value={item.doseAmount} onChange={(e) => updateItem({ ...item, doseAmount: e.target.value })} placeholder="Example: .5" title="User-entered dose amount note for this protocol item." />
+                  </label>
+                  <label className="field-label">
+                    <span>Dose measurement</span>
+                    <Select value={item.doseUnit || peptide?.doseUnit || "mg"} onChange={(e) => updateItem({ ...item, doseUnit: e.target.value as DoseUnit })} title="Choose the measurement unit for this protocol item.">
+                      {doseUnits.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+                    </Select>
+                  </label>
                 </div>
-                <Input value={item.instructions || ""} onChange={(e) => updateItem({ ...item, instructions: e.target.value })} placeholder="Optional instructions" title="Optional user-entered context such as with food or before bed." />
+                <div className="time-builder">
+                  <label className="field-label">
+                    <span>Dose time</span>
+                    <Select value={timeParts.hour} onChange={(e) => updateItem({ ...item, schedule: { ...item.schedule, preferredTimes: [fromTimeParts(e.target.value, timeParts.minute, timeParts.period)] } })} title="Choose the hour for this scheduled dose time.">
+                      {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((hour) => <option key={hour}>{hour}</option>)}
+                    </Select>
+                  </label>
+                  <label className="field-label">
+                    <span>Minutes</span>
+                    <Select value={timeParts.minute} onChange={(e) => updateItem({ ...item, schedule: { ...item.schedule, preferredTimes: [fromTimeParts(timeParts.hour, e.target.value, timeParts.period)] } })} title="Choose the minutes for this scheduled dose time.">
+                      {["00", "15", "30", "45"].map((minute) => <option key={minute}>{minute}</option>)}
+                    </Select>
+                  </label>
+                  <label className="field-label">
+                    <span>AM / PM</span>
+                    <Select value={timeParts.period} onChange={(e) => updateItem({ ...item, schedule: { ...item.schedule, preferredTimes: [fromTimeParts(timeParts.hour, timeParts.minute, e.target.value)] } })} title="Choose AM or PM for this scheduled dose time.">
+                      <option>AM</option>
+                      <option>PM</option>
+                    </Select>
+                  </label>
+                </div>
+                <p className="subtle">Scheduled for {displayTime(item.schedule.preferredTimes[0] || "08:00")}. Add more times later by creating additional protocol items.</p>
+                <label className="field-label">
+                  <span>Instructions / context</span>
+                  <Input value={item.instructions || ""} onChange={(e) => updateItem({ ...item, instructions: e.target.value })} placeholder="Example: With food" title="Optional user-entered context such as with food or before bed." />
+                </label>
                 <div className="week-row compact">
                   {weekdays.map((day, index) => (
                     <button
@@ -162,7 +226,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
                   />
                   <Bell size={15} /> Reminder toggle for this dose time
                 </label>
-                <p className="subtle">{peptide?.doseUnit || "unit"} values are stored as user notes.</p>
+                <p className="subtle">{item.doseUnit || peptide?.doseUnit || "unit"} values are stored as user notes.</p>
               </div>
             );
           })}
