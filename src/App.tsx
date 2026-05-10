@@ -57,7 +57,22 @@ export default function App() {
     }));
   };
 
-  const screenProps = { state, setState, scheduledDoses, logDose, updateLog };
+  const deleteScheduleItem = (dose: ScheduledDose) => {
+    setState((current) => ({
+      ...current,
+      protocols: current.protocols.map((protocol) => protocol.id === dose.protocolId
+        ? { ...protocol, items: protocol.items.filter((item) => item.id !== dose.protocolItemId) }
+        : protocol),
+      doseLogs: current.doseLogs.filter((log) => log.scheduledDoseId !== dose.id),
+    }));
+  };
+
+  const viewNextDose = () => {
+    setActiveTab("home");
+    window.setTimeout(() => document.getElementById("todays-doses")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  const screenProps = { state, setState, scheduledDoses, logDose, updateLog, deleteScheduleItem };
 
   return (
     <div className="app-shell">
@@ -88,7 +103,7 @@ export default function App() {
         </button>
       </div>
 
-      <NextDoseBar dose={nextDose} peptide={nextPeptide} />
+      <NextDoseBar dose={nextDose} peptide={nextPeptide} onView={viewNextDose} />
       <BottomNav active={activeTab} onChange={setActiveTab} />
     </div>
   );

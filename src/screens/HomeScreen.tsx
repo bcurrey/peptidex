@@ -1,5 +1,6 @@
 import { CalendarCheck, Flame, Target } from "lucide-react";
 import { DoseCard } from "../components/DoseCard";
+import { DoseHistory } from "../components/DoseHistory";
 import { ProgressRing } from "../components/ProgressRing";
 import { StatCard } from "../components/StatCard";
 import { Card, EmptyState, ScreenHeader, SectionHeader } from "../components/ui";
@@ -11,11 +12,13 @@ export function HomeScreen({
   scheduledDoses,
   logDose,
   updateLog,
+  deleteScheduleItem,
 }: {
   state: AppState;
   scheduledDoses: ScheduledDose[];
   logDose: (dose: ScheduledDose, status: DoseStatus) => void;
   updateLog: (log: DoseLog) => void;
+  deleteScheduleItem: (dose: ScheduledDose) => void;
 }) {
   const stats = getAppStats(state);
   const visibleWidgets = (state.dashboardWidgets || []).filter((widget) => widget.visible).sort((a, b) => a.order - b.order);
@@ -38,16 +41,17 @@ export function HomeScreen({
         <Card className="score-card compact-summary">
           <div>
             <p className="eyebrow">Today summary</p>
-            <h2>{Math.max(progress, 95)}% complete</h2>
-            <div className="summary-progress"><span style={{ width: `${Math.max(progress, 95)}%` }} /></div>
+            <h2>{progress}% complete</h2>
+            <div className="summary-progress"><span style={{ width: `${progress}%` }} /></div>
             <p className="subtle">Track scheduled items and user-entered notes for today.</p>
           </div>
-          <ProgressRing value={Math.max(progress, 95)} label="today" />
+          <ProgressRing value={progress} label="today" />
         </Card>
         <StatCard label="Current streak" value={`${stats.currentStreak}d`} icon={<Flame size={18} />} />
-        <StatCard label="Doses today" value={`${completed}/${todaysDoses.length || 3}`} icon={<Target size={18} />} />
+        <StatCard label="Doses today" value={`${completed}/${todaysDoses.length}`} icon={<Target size={18} />} />
       </section>
 
+      <section id="todays-doses" className="anchor-section">
       <SectionHeader title="Today's Scheduled Doses" meta={`${todaysDoses.length} items`} />
       {todaysDoses.length ? todaysDoses.map((dose) => (
         <DoseCard
@@ -57,8 +61,10 @@ export function HomeScreen({
           log={getLogForDose(state.doseLogs, dose.id)}
           onStatus={logDose}
           onUpdateLog={updateLog}
+          onDeleteScheduleItem={deleteScheduleItem}
         />
       )) : <EmptyState title="No upcoming doses" body="Create or activate a protocol to see scheduled items here." />}
+      </section>
 
       <Card>
         <div className="row-between">
@@ -75,9 +81,11 @@ export function HomeScreen({
 
       <Card className="plan-card compact-plan">
         <p className="eyebrow">Smart daily plan</p>
-        <h2>Three scheduled check-ins</h2>
-        <p>Morning, midday, and before-bed items are ready to log. Dosage values are stored only as your notes.</p>
+        <h2>{todaysDoses.length ? `${todaysDoses.length} scheduled item${todaysDoses.length === 1 ? "" : "s"}` : "No active schedule"}</h2>
+        <p>{todaysDoses.length ? "Your active protocol schedule is ready to log. Dosage values are stored only as your notes." : "Create a protocol when you are ready to schedule tracking reminders."}</p>
       </Card>
+
+      <DoseHistory state={state} scheduledDoses={scheduledDoses} onUpdateLog={updateLog} />
 
       <Card>
         <p className="eyebrow">Homepage widgets</p>

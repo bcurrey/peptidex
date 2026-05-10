@@ -1,7 +1,7 @@
 import { Bell } from "lucide-react";
 import { Peptide, ScheduledDose } from "../types";
 
-export function NextDoseBar({ dose, peptide }: { dose?: ScheduledDose; peptide?: Peptide }) {
+export function NextDoseBar({ dose, peptide, onView }: { dose?: ScheduledDose; peptide?: Peptide; onView?: () => void }) {
   if (!dose || !peptide) return null;
   const time = new Date(dose.scheduledAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   return (
@@ -13,7 +13,7 @@ export function NextDoseBar({ dose, peptide }: { dose?: ScheduledDose; peptide?:
           {peptide.nickname || peptide.name} at {time}
         </strong>
       </div>
-      <button type="button" title="Open today's scheduled doses.">View</button>
+      <button type="button" onClick={onView} title="Open today's scheduled doses.">View</button>
     </div>
   );
 }

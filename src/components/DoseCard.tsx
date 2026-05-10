@@ -9,12 +9,14 @@ export function DoseCard({
   log,
   onStatus,
   onUpdateLog,
+  onDeleteScheduleItem,
 }: {
   dose: ScheduledDose;
   peptide?: Peptide;
   log?: DoseLog;
   onStatus: (dose: ScheduledDose, status: DoseStatus) => void;
   onUpdateLog?: (log: DoseLog) => void;
+  onDeleteScheduleItem?: (dose: ScheduledDose) => void;
 }) {
   const time = new Date(dose.scheduledAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const computedStatus = statusForDose(dose, []);
@@ -39,7 +41,8 @@ export function DoseCard({
         {!isTaken && !isMissed && <Button variant="ghost" onClick={() => onStatus(dose, "snoozed")} title="Snooze this item for later."><Clock3 size={16} /></Button>}
         {!isTaken && <Button variant="ghost" onClick={() => onStatus(dose, "skipped")} title="Mark this item as intentionally skipped."><SkipForward size={16} /></Button>}
         {!isMissed && !isTaken && <Button variant="ghost" onClick={() => onStatus(dose, "missed")} title="Mark this scheduled item as missed."><X size={16} /></Button>}
-        {isTaken && <Button variant="ghost" onClick={() => onStatus(dose, "snoozed")} title="Change this log if needed."><Clock3 size={16} /> Edit</Button>}
+        {isTaken && <Button variant="ghost" className="action-text" onClick={() => onStatus(dose, "snoozed")} title="Change this log if needed."><Clock3 size={16} /> Edit</Button>}
+        {onDeleteScheduleItem && <Button variant="ghost" className="action-text" onClick={() => onDeleteScheduleItem(dose)} title="Remove this item from its protocol schedule.">Remove</Button>}
       </div>
       {log && onUpdateLog && (
         <div className="log-editor">

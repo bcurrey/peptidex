@@ -252,6 +252,11 @@ h3 { font-size: 15px; line-height: 1.2; }
 .btn.danger { color: white; background: var(--danger); }
 .dose-actions .btn:first-child { flex: 1; }
 .dose-actions .btn.ghost { width: 42px; padding: 0; }
+.dose-actions .btn.action-text {
+  width: auto;
+  min-width: 74px;
+  padding: 0 10px;
+}
 .log-editor {
   display: grid;
   gap: 8px;
@@ -261,6 +266,59 @@ h3 { font-size: 15px; line-height: 1.2; }
   color: #ffd58e;
   font-size: 12px;
   font-weight: 800;
+}
+
+.anchor-section {
+  scroll-margin-top: 86px;
+  display: grid;
+  gap: 12px;
+}
+
+.dose-history {
+  display: grid;
+  gap: 12px;
+}
+
+.dose-history .section-title .field {
+  min-height: 36px;
+  max-width: 142px;
+  font-size: 12px;
+}
+
+.history-row {
+  display: grid;
+  gap: 10px;
+}
+
+.history-edit-grid {
+  display: grid;
+  grid-template-columns: minmax(112px, 0.7fr) minmax(0, 1.3fr);
+  gap: 8px;
+}
+
+.pager {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.pager span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pager button {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: white;
+  background: rgba(255,255,255,0.05);
+}
+
+.pager button:disabled {
+  opacity: 0.42;
 }
 
 .field {
@@ -337,15 +395,16 @@ textarea.field { resize: vertical; }
 .peptide-row h3 {
   margin: 2px 0 3px;
 }
-.peptide-row strong {
-  font-size: 13px;
-  white-space: nowrap;
-}
+.peptide-row .mini-chip { justify-self: end; }
 .list-card strong { color: var(--green); }
 .editor-panel {
   display: grid;
   gap: 12px;
   border-color: rgba(159,214,162,0.26);
+}
+.active-editor {
+  border-color: rgba(159,214,162,0.48);
+  background: rgba(23, 31, 26, 0.96);
 }
 .text-button, .chip-button {
   border: 0;
