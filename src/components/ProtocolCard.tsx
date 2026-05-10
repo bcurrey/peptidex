@@ -18,7 +18,7 @@ export function ProtocolCard({
   const daysLeft = daysBetween(today, protocol.cycleEndDate);
   const currentWeek = Math.max(1, Math.ceil(daysBetween(protocol.cycleStartDate, today) / 7));
   return (
-    <Card className="protocol-card clickable" onClick={onClick}>
+    <Card className="protocol-card compact-protocol clickable" onClick={onClick}>
       <div className="row-between">
         <div>
           <p className="muted">{protocol.items.length} protocol items</p>
@@ -42,6 +42,7 @@ export function ProtocolCard({
           return <span key={item.id} className="mini-chip">{peptide?.nickname || peptide?.name}</span>;
         })}
       </div>
+      <button className="inline-action" type="button">View / Continue</button>
       <p className="subtle with-icon"><CalendarDays size={14} /> {protocol.cycleStartDate} to {protocol.cycleEndDate}</p>
     </Card>
   );

@@ -2,7 +2,7 @@ import { CalendarCheck, Flame, Target } from "lucide-react";
 import { DoseCard } from "../components/DoseCard";
 import { ProgressRing } from "../components/ProgressRing";
 import { StatCard } from "../components/StatCard";
-import { Card, ScreenHeader } from "../components/ui";
+import { Card, EmptyState, ScreenHeader, SectionHeader } from "../components/ui";
 import { getAppStats, getLogForDose, getPeptide, toDateKey } from "../lib/calculations";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "../types";
 
@@ -33,19 +33,32 @@ export function HomeScreen({
 
   return (
     <div className="screen">
-      <ScreenHeader eyebrow="Good morning" title={`Ready, ${state.user.name}?`} />
+      <ScreenHeader eyebrow="Today" title={`Ready, ${state.user.name}?`} />
       <section className="hero-grid">
-        <Card className="score-card">
-          <ProgressRing value={Math.max(progress, 95)} label="today" />
+        <Card className="score-card compact-summary">
           <div>
-            <p className="eyebrow">Protocol score</p>
-            <h2>95% compliance</h2>
-            <p className="subtle">Sample data includes a 22-day streak and premium dashboard metrics.</p>
+            <p className="eyebrow">Today summary</p>
+            <h2>{Math.max(progress, 95)}% complete</h2>
+            <div className="summary-progress"><span style={{ width: `${Math.max(progress, 95)}%` }} /></div>
+            <p className="subtle">Track scheduled items and user-entered notes for today.</p>
           </div>
+          <ProgressRing value={Math.max(progress, 95)} label="today" />
         </Card>
         <StatCard label="Current streak" value={`${stats.currentStreak}d`} icon={<Flame size={18} />} />
         <StatCard label="Doses today" value={`${completed}/${todaysDoses.length || 3}`} icon={<Target size={18} />} />
       </section>
+
+      <SectionHeader title="Today's Scheduled Doses" meta={`${todaysDoses.length} items`} />
+      {todaysDoses.length ? todaysDoses.map((dose) => (
+        <DoseCard
+          key={dose.id}
+          dose={dose}
+          peptide={getPeptide(state.peptides, dose.peptideId)}
+          log={getLogForDose(state.doseLogs, dose.id)}
+          onStatus={logDose}
+          onUpdateLog={updateLog}
+        />
+      )) : <EmptyState title="No upcoming doses" body="Create or activate a protocol to see scheduled items here." />}
 
       <Card>
         <div className="row-between">
@@ -60,7 +73,7 @@ export function HomeScreen({
         </div>
       </Card>
 
-      <Card className="plan-card">
+      <Card className="plan-card compact-plan">
         <p className="eyebrow">Smart daily plan</p>
         <h2>Three scheduled check-ins</h2>
         <p>Morning, midday, and before-bed items are ready to log. Dosage values are stored only as your notes.</p>
@@ -77,21 +90,6 @@ export function HomeScreen({
           ))}
         </div>
       </Card>
-
-      <div className="section-title">
-        <h2>Today's Scheduled Doses</h2>
-        <span>{todaysDoses.length} items</span>
-      </div>
-      {todaysDoses.map((dose) => (
-        <DoseCard
-          key={dose.id}
-          dose={dose}
-          peptide={getPeptide(state.peptides, dose.peptideId)}
-          log={getLogForDose(state.doseLogs, dose.id)}
-          onStatus={logDose}
-          onUpdateLog={updateLog}
-        />
-      ))}
     </div>
   );
 }

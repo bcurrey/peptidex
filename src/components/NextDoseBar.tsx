@@ -13,6 +13,7 @@ export function NextDoseBar({ dose, peptide }: { dose?: ScheduledDose; peptide?:
           {peptide.nickname || peptide.name} at {time}
         </strong>
       </div>
+      <button type="button" title="Open today's scheduled doses.">View</button>
     </div>
   );
 }

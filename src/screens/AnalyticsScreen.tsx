@@ -126,7 +126,7 @@ export function AnalyticsScreen({
 
   return (
     <div className="screen">
-      <ScreenHeader eyebrow="Progress OS" title="Insights" />
+      <ScreenHeader eyebrow="Progress" title="Analytics" />
 
       {!state.onboardingComplete && (
         <Card>

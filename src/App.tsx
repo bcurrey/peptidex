@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Plus, RotateCcw, ShieldAlert } from "lucide-react";
+import { Plus, RotateCcw } from "lucide-react";
 import { BottomNav } from "./components/BottomNav";
 import { NextDoseBar } from "./components/NextDoseBar";
 import { AnalyticsScreen } from "./screens/AnalyticsScreen";
@@ -10,6 +10,7 @@ import { ProtocolsScreen } from "./screens/ProtocolsScreen";
 import { getPeptide, generateScheduledDoses } from "./lib/calculations";
 import { loadState, resetState, saveState } from "./lib/storage";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "./types";
+import { AppHeader, SafetyNotice } from "./components/ui";
 
 export type Tab = "home" | "peptides" | "protocols" | "analytics" | "profile";
 
@@ -62,21 +63,16 @@ export default function App() {
     <div className="app-shell">
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
-      <header className="topbar">
-        <div className="brand-mark">PX</div>
-        <div>
-          <span>PeptideX</span>
-          <strong>Protocol tracker</strong>
-        </div>
+      <AppHeader
+        subtitle="Protocol tracker"
+        action={
         <button className="icon-button" aria-label="Reset sample data" title="Reset local demo data and seed examples." onClick={() => setState(resetState())}>
           <RotateCcw size={18} />
         </button>
-      </header>
+        }
+      />
 
-      <div className="safety-banner">
-        <ShieldAlert size={16} />
-        Tracking only. No medical advice, dosing recommendations, or health claims.
-      </div>
+      <SafetyNotice />
 
       <main>
         {activeTab === "home" && <HomeScreen {...screenProps} />}
@@ -87,9 +83,6 @@ export default function App() {
       </main>
 
       <div className="floating-actions">
-        <button aria-label="Reminder placeholder" title="Reminder settings placeholder for browser/native notifications." className="fab small">
-          <Bell size={18} />
-        </button>
         <button aria-label="Quick add" title="Jump to Protocols to create or edit a protocol." className="fab" onClick={() => setActiveTab("protocols")}>
           <Plus size={22} />
         </button>

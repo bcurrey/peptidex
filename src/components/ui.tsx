@@ -1,5 +1,7 @@
 import type React from "react";
 import { HTMLAttributes, ReactNode } from "react";
+import { ShieldAlert } from "lucide-react";
+import { appName, safetyCopy } from "../theme";
 
 export function Card({
   children,
@@ -46,6 +48,46 @@ export function ScreenHeader({ eyebrow, title, action }: { eyebrow?: string; tit
         <h1>{title}</h1>
       </div>
       {action}
+    </div>
+  );
+}
+
+export function AppHeader({ subtitle, action }: { subtitle: string; action?: ReactNode }) {
+  return (
+    <header className="topbar">
+      <div className="brand-mark">PX</div>
+      <div>
+        <span>{appName}</span>
+        <strong>{subtitle}</strong>
+      </div>
+      {action}
+    </header>
+  );
+}
+
+export function SafetyNotice() {
+  return (
+    <div className="safety-banner" role="note">
+      <ShieldAlert size={14} />
+      <span>{safetyCopy}</span>
+    </div>
+  );
+}
+
+export function SectionHeader({ title, meta, action }: { title: string; meta?: string; action?: ReactNode }) {
+  return (
+    <div className="section-title">
+      <h2>{title}</h2>
+      {action || (meta ? <span>{meta}</span> : null)}
+    </div>
+  );
+}
+
+export function EmptyState({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="empty-state">
+      <strong>{title}</strong>
+      <span>{body}</span>
     </div>
   );
 }
