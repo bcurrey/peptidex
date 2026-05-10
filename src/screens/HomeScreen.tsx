@@ -18,7 +18,7 @@ export function HomeScreen({
   updateLog: (log: DoseLog) => void;
 }) {
   const stats = getAppStats(state);
-  const visibleWidgets = state.dashboardWidgets.filter((widget) => widget.visible).sort((a, b) => a.order - b.order);
+  const visibleWidgets = (state.dashboardWidgets || []).filter((widget) => widget.visible).sort((a, b) => a.order - b.order);
   const todayKey = toDateKey(new Date());
   const todaysDoses = scheduledDoses.filter((dose) => dose.scheduledAt.startsWith(todayKey));
   const completed = todaysDoses.filter((dose) => getLogForDose(state.doseLogs, dose.id)?.status === "taken").length;

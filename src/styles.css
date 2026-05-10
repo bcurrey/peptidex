@@ -1041,6 +1041,9 @@ textarea.field { resize: vertical; }
 .empty-state strong {
   color: var(--text);
 }
+.app-error {
+  margin-top: 48px;
+}
 
 @media (min-width: 720px) {
   .app-shell { padding-left: 22px; padding-right: 22px; }
