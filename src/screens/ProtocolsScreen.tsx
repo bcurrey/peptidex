@@ -51,6 +51,16 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
     setEditing(null);
   };
 
+  const deleteProtocol = () => {
+    if (!editing?.id) return;
+    setState((current) => ({
+      ...current,
+      protocols: current.protocols.filter((protocol) => protocol.id !== editing.id),
+      doseLogs: current.doseLogs.filter((log) => !log.scheduledDoseId.startsWith(`${editing.id}-`)),
+    }));
+    setEditing(null);
+  };
+
   const addItem = () => {
     if (!editing || !state.peptides[0]) return;
     const peptide = state.peptides[0];
@@ -230,7 +240,10 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
               </div>
             );
           })}
-          <Button onClick={saveProtocol} title="Save this protocol to local storage.">Save protocol</Button>
+          <div className="editor-actions">
+            {editing.id && <Button variant="danger" onClick={deleteProtocol} title="Delete this saved protocol and remove its generated logs.">Delete protocol</Button>}
+            <Button onClick={saveProtocol} title="Save this protocol to local storage.">Save protocol</Button>
+          </div>
         </Card>
       )}
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { BottomNav } from "./components/BottomNav";
 import { NextDoseBar } from "./components/NextDoseBar";
 import { AnalyticsScreen } from "./screens/AnalyticsScreen";
@@ -96,12 +96,6 @@ export default function App() {
         {activeTab === "analytics" && <AnalyticsScreen state={state} setState={setState} scheduledDoses={scheduledDoses} />}
         {activeTab === "profile" && <ProfileScreen state={state} setState={setState} />}
       </main>
-
-      <div className="floating-actions">
-        <button aria-label="Quick add" title="Jump to Protocols to create or edit a protocol." className="fab" onClick={() => setActiveTab("protocols")}>
-          <Plus size={22} />
-        </button>
-      </div>
 
       <NextDoseBar dose={nextDose} peptide={nextPeptide} onView={viewNextDose} />
       <BottomNav active={activeTab} onChange={setActiveTab} />

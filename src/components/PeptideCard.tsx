@@ -8,9 +8,8 @@ export function PeptideCard({ peptide, onClick }: { peptide: Peptide; onClick: (
     <Card className="list-card peptide-row clickable" onClick={onClick}>
       <div>
         <h3>{peptide.name}</h3>
-        <span className="subtle">{tags?.length ? tags.join(" / ") : peptide.category}</span>
       </div>
-      <span className="mini-chip">{peptide.category}</span>
+      <span className="mini-chip">{tags?.[0] || peptide.category}</span>
     </Card>
   );
 }

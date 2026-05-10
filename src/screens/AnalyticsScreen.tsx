@@ -108,13 +108,6 @@ export function AnalyticsScreen({
     setCustomMetricName("");
   };
 
-  const applyTemplate = (metricIds: string[]) => {
-    setState((current) => ({
-      ...current,
-      metricConfigs: current.metricConfigs.map((metric) => metricIds.includes(metric.id) ? { ...metric, enabled: true, showInAnalytics: true } : metric),
-    }));
-  };
-
   const download = (name: string, text: string, type: string) => {
     const url = URL.createObjectURL(new Blob([text], { type }));
     const anchor = document.createElement("a");
@@ -125,7 +118,7 @@ export function AnalyticsScreen({
   };
 
   return (
-    <div className="screen">
+    <div className="screen analytics-screen">
       <ScreenHeader eyebrow="Progress" title="Analytics" />
 
       {!state.onboardingComplete && (
@@ -206,6 +199,7 @@ export function AnalyticsScreen({
 
       <Card>
         <p className="eyebrow">Inventory & supply</p>
+        <h2 className="card-heading">Inventory & Supply</h2>
         <div className="stack tight">
           {state.inventoryItems.map((item) => {
             const peptide = state.peptides.find((pep) => pep.id === item.peptideId);
@@ -223,31 +217,6 @@ export function AnalyticsScreen({
               </div>
             );
           })}
-        </div>
-      </Card>
-
-      <Card>
-        <p className="eyebrow">Smart protocol builder</p>
-        <div className="builder-grid">
-          <Input value={state.smartBuilder.primaryGoal} onChange={(e) => setState((current) => ({ ...current, smartBuilder: { ...current.smartBuilder, primaryGoal: e.target.value } }))} />
-          <Input value={state.smartBuilder.sleepSchedule} onChange={(e) => setState((current) => ({ ...current, smartBuilder: { ...current.smartBuilder, sleepSchedule: e.target.value } }))} />
-          <Input value={state.smartBuilder.workSchedule} onChange={(e) => setState((current) => ({ ...current, smartBuilder: { ...current.smartBuilder, workSchedule: e.target.value } }))} />
-          <Select value={state.smartBuilder.trackingIntensity} onChange={(e) => setState((current) => ({ ...current, smartBuilder: { ...current.smartBuilder, trackingIntensity: e.target.value as AppState["smartBuilder"]["trackingIntensity"] } }))}>
-            <option>Minimal</option><option>Standard</option><option>Advanced</option>
-          </Select>
-        </div>
-        <div className="insight-row mt-12"><Sparkles size={16} /> Suggested schedule: {state.smartBuilder.injectionTimes.join(", ")} with {state.smartBuilder.trackingIntensity.toLowerCase()} tracking modules.</div>
-      </Card>
-
-      <Card>
-        <p className="eyebrow">Protocol templates</p>
-        <div className="template-grid">
-          {state.protocolTemplates.map((template) => (
-            <button key={template.id} onClick={() => applyTemplate(template.preselectedMetricIds)} title={`Enable recommended metrics for the ${template.name} template.`}>
-              <strong>{template.name}</strong>
-              <span>{template.notes}</span>
-            </button>
-          ))}
         </div>
       </Card>
 
@@ -364,15 +333,22 @@ export function AnalyticsScreen({
 
 function MetricLogger({ metric, onLog }: { metric: MetricConfig; onLog: (metric: MetricConfig, value: string) => void }) {
   const [value, setValue] = useState("");
+  const ratingMax = metric.inputType === "rating-5" ? 5 : metric.inputType === "rating-10" ? 10 : 0;
   return (
     <div className="metric-log-row">
       <div><strong>{metric.name}</strong><span>{metric.frequency} - {metric.goalDirection}</span></div>
-      {metric.inputType === "yes-no" ? (
+      {ratingMax ? (
+        <div className="quick-rating">
+          {Array.from({ length: ratingMax }, (_, index) => String(index + 1)).map((rating) => (
+            <button key={rating} className={value === rating ? "active" : ""} onClick={() => setValue(rating)} title={`Set ${metric.name} to ${rating}.`}>{rating}</button>
+          ))}
+        </div>
+      ) : metric.inputType === "yes-no" ? (
         <Select value={value} onChange={(e) => setValue(e.target.value)} title={`Log a yes/no value for ${metric.name}.`}><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></Select>
       ) : (
         <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder={metric.inputType.startsWith("rating") ? metric.inputType.replace("rating-", "1-") : metric.unit || "Value"} type={metric.inputType === "numeric" || metric.inputType.startsWith("rating") ? "number" : "text"} title={`Enter a value for ${metric.name}.`} />
       )}
-      <Button variant="ghost" onClick={() => { onLog(metric, value); setValue(""); }} title={`Save this ${metric.name} entry.`}>Log</Button>
+      <Button onClick={() => { onLog(metric, value); setValue(""); }} title={`Save this ${metric.name} entry.`}>Log</Button>
     </div>
   );
 }

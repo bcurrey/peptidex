@@ -37,7 +37,7 @@ export function DoseCard({
         <span className={`status-pill ${status || "pending"}`}>{status || "pending"}</span>
       </div>
       <div className="dose-actions">
-        {!isTaken && <Button onClick={() => onStatus(dose, "taken")} title="Mark this scheduled item as taken."><Check size={16} /> Taken</Button>}
+        {!isTaken && <Button onClick={() => onStatus(dose, "taken")} title="Record this dose as taken right now."><Check size={16} /> Take now</Button>}
         {!isTaken && !isMissed && <Button variant="ghost" onClick={() => onStatus(dose, "snoozed")} title="Snooze this item for later."><Clock3 size={16} /></Button>}
         {!isTaken && <Button variant="ghost" onClick={() => onStatus(dose, "skipped")} title="Mark this item as intentionally skipped."><SkipForward size={16} /></Button>}
         {!isMissed && !isTaken && <Button variant="ghost" onClick={() => onStatus(dose, "missed")} title="Mark this scheduled item as missed."><X size={16} /></Button>}

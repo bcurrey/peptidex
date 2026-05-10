@@ -10,6 +10,7 @@
 }
 
 * { box-sizing: border-box; }
+html, body { max-width: 100%; overflow-x: hidden; }
 body { margin: 0; min-height: 100vh; background: var(--bg); }
 button, input, textarea, select { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
@@ -215,7 +216,15 @@ h3 { font-size: 15px; line-height: 1.2; }
 .plan-card p:last-child { margin-top: 8px; color: var(--subtle); line-height: 1.45; }
 
 .dose-card { display: grid; gap: 12px; }
-.dose-card.taken { border-color: rgba(159, 214, 162, 0.42); }
+.dose-card.taken {
+  border-color: rgba(159, 214, 162, 0.42);
+  opacity: 0.68;
+  background: rgba(19, 23, 21, 0.74);
+}
+.dose-card.taken h3::after {
+  content: " ✓";
+  color: var(--green);
+}
 .dose-main { justify-content: space-between; gap: 10px; }
 .status-pill {
   padding: 5px 9px;
@@ -410,6 +419,11 @@ textarea.field { resize: vertical; }
   border: 0;
   color: var(--green);
   background: transparent;
+}
+.editor-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .disclaimer {
@@ -666,7 +680,7 @@ textarea.field { resize: vertical; }
 }
 .metric-log-row {
   display: grid;
-  grid-template-columns: 1fr 108px 58px;
+  grid-template-columns: 1fr;
   gap: 8px;
   align-items: center;
   padding: 10px;
@@ -679,8 +693,25 @@ textarea.field { resize: vertical; }
   gap: 3px;
 }
 .metric-log-row .btn {
-  min-height: 48px;
-  padding: 0;
+  min-height: 42px;
+}
+.quick-rating {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.quick-rating button {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: white;
+  background: rgba(255,255,255,0.055);
+}
+.quick-rating button.active {
+  color: #071109;
+  border-color: transparent;
+  background: var(--green);
+  font-weight: 800;
 }
 .insight-row, .privacy-row {
   display: flex;
@@ -917,6 +948,10 @@ textarea.field { resize: vertical; }
 }
 .inventory-card.low {
   border-color: rgba(238,119,119,0.42);
+}
+.card-heading {
+  margin: 3px 0 14px;
+  font-size: 24px;
 }
 .inventory-card div:first-child span {
   display: block;
@@ -1160,6 +1195,10 @@ textarea.field { resize: vertical; }
     grid-column: 1 / -1;
   }
 
+  .analytics-screen > * {
+    grid-column: 1 / -1;
+  }
+
   .screen > .hero-grid,
   .screen > .stats-grid,
   .screen > .chart-grid {
@@ -1180,7 +1219,7 @@ textarea.field { resize: vertical; }
   .module-grid,
   .template-grid,
   .dashboard-widget-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-widget-grid .large {
