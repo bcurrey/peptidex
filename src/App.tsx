@@ -57,6 +57,13 @@ export default function App() {
     }));
   };
 
+  const deleteLog = (log: DoseLog) => {
+    setState((current) => ({
+      ...current,
+      doseLogs: current.doseLogs.filter((item) => item.id !== log.id),
+    }));
+  };
+
   const deleteScheduleItem = (dose: ScheduledDose) => {
     setState((current) => ({
       ...current,
@@ -69,10 +76,17 @@ export default function App() {
 
   const viewNextDose = () => {
     setActiveTab("home");
-    window.setTimeout(() => document.getElementById("todays-doses")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    const scrollToToday = () => {
+      const target = document.getElementById("todays-doses");
+      if (!target) return;
+      const top = target.getBoundingClientRect().top + window.scrollY - 92;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    };
+    window.setTimeout(scrollToToday, activeTab === "home" ? 0 : 140);
+    window.setTimeout(scrollToToday, 320);
   };
 
-  const screenProps = { state, setState, scheduledDoses, logDose, updateLog, deleteScheduleItem };
+  const screenProps = { state, setState, scheduledDoses, logDose, updateLog, deleteScheduleItem, deleteLog };
 
   return (
     <div className="app-shell">

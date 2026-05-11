@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from "react";
 import { CalendarCheck, Flame, Target } from "lucide-react";
 import { DoseCard } from "../components/DoseCard";
 import { DoseHistory } from "../components/DoseHistory";
@@ -9,19 +10,23 @@ import { AppState, DoseLog, DoseStatus, ScheduledDose } from "../types";
 
 export function HomeScreen({
   state,
+  setState,
   scheduledDoses,
   logDose,
   updateLog,
   deleteScheduleItem,
+  deleteLog,
 }: {
   state: AppState;
+  setState: Dispatch<SetStateAction<AppState>>;
   scheduledDoses: ScheduledDose[];
   logDose: (dose: ScheduledDose, status: DoseStatus) => void;
   updateLog: (log: DoseLog) => void;
   deleteScheduleItem: (dose: ScheduledDose) => void;
+  deleteLog: (log: DoseLog) => void;
 }) {
   const stats = getAppStats(state);
-  const visibleWidgets = (state.dashboardWidgets || []).filter((widget) => widget.visible).sort((a, b) => a.order - b.order);
+  const dashboardWidgets = (state.dashboardWidgets || []).sort((a, b) => a.order - b.order);
   const todayKey = toDateKey(new Date());
   const todaysDoses = scheduledDoses.filter((dose) => dose.scheduledAt.startsWith(todayKey));
   const completed = todaysDoses.filter((dose) => getLogForDose(state.doseLogs, dose.id)?.status === "taken").length;
@@ -85,14 +90,22 @@ export function HomeScreen({
         <p>{todaysDoses.length ? "Your active protocol schedule is ready to log. Dosage values are stored only as your notes." : "Create a protocol when you are ready to schedule tracking reminders."}</p>
       </Card>
 
-      <DoseHistory state={state} scheduledDoses={scheduledDoses} onUpdateLog={updateLog} />
+      <DoseHistory state={state} scheduledDoses={scheduledDoses} onUpdateLog={updateLog} onDeleteLog={deleteLog} />
 
       <Card>
         <p className="eyebrow">Homepage widgets</p>
         <div className="dashboard-widget-grid">
-          {visibleWidgets.map((widget) => (
-            <button key={widget.id} className={`${widget.size} ${widget.pinned ? "pinned" : ""}`}>
-              <span>{widget.pinned ? "Pinned" : "Widget"}</span>
+          {dashboardWidgets.map((widget) => (
+            <button
+              key={widget.id}
+              className={`${widget.size} ${widget.pinned ? "pinned" : ""} ${widget.visible ? "active" : "disabled"}`}
+              onClick={() => setState((current) => ({
+                ...current,
+                dashboardWidgets: current.dashboardWidgets.map((item) => item.id === widget.id ? { ...item, visible: !item.visible } : item),
+              }))}
+              title={`${widget.visible ? "Hide" : "Show"} ${widget.title} on the Home dashboard.`}
+            >
+              <span>{widget.visible ? "Shown" : "Hidden"}</span>
               <strong>{widget.title}</strong>
             </button>
           ))}

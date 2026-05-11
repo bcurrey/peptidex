@@ -51,13 +51,17 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
     setEditing(null);
   };
 
-  const deleteProtocol = () => {
-    if (!editing?.id) return;
+  const deleteProtocolById = (protocolId: string) => {
     setState((current) => ({
       ...current,
-      protocols: current.protocols.filter((protocol) => protocol.id !== editing.id),
-      doseLogs: current.doseLogs.filter((log) => !log.scheduledDoseId.startsWith(`${editing.id}-`)),
+      protocols: current.protocols.filter((protocol) => protocol.id !== protocolId),
+      doseLogs: current.doseLogs.filter((log) => !log.scheduledDoseId.startsWith(`${protocolId}-`)),
     }));
+  };
+
+  const deleteProtocol = () => {
+    if (!editing?.id) return;
+    deleteProtocolById(editing.id);
     setEditing(null);
   };
 
@@ -101,6 +105,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
             peptides={state.peptides}
             adherence={Math.max(calculateCompliance(state.doseLogs), 95)}
             onClick={() => setEditing(protocol)}
+            onDelete={() => deleteProtocolById(protocol.id)}
           />
         ))}
       </div>

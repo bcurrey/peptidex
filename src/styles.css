@@ -90,6 +90,12 @@ button { -webkit-tap-highlight-color: transparent; }
 
 main { position: relative; z-index: 1; }
 .screen { display: grid; gap: var(--space-section); }
+.screen > *,
+.glass-card,
+.analytics-screen,
+.analytics-screen * {
+  min-width: 0;
+}
 .screen-header {
   justify-content: space-between;
   gap: 12px;
@@ -297,6 +303,14 @@ h3 { font-size: 15px; line-height: 1.2; }
 .history-row {
   display: grid;
   gap: 10px;
+}
+.press-hint {
+  color: var(--muted);
+  font-size: 11px;
+}
+.long-pressable {
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .history-edit-grid {
@@ -794,7 +808,7 @@ textarea.field { resize: vertical; }
 }
 .export-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-top: 12px;
 }
@@ -818,7 +832,7 @@ textarea.field { resize: vertical; }
 }
 .range-row {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
 }
 .range-row button {
@@ -847,7 +861,7 @@ textarea.field { resize: vertical; }
   position: relative;
   height: 190px;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   align-items: end;
   gap: 6px;
   padding: 12px;
@@ -1032,6 +1046,12 @@ textarea.field { resize: vertical; }
 .dashboard-widget-grid .pinned {
   border-color: rgba(159,214,162,0.36);
   background: rgba(159,214,162,0.08);
+}
+.dashboard-widget-grid .active {
+  border-color: rgba(159,214,162,0.5);
+}
+.dashboard-widget-grid .disabled {
+  opacity: 0.48;
 }
 
 .floating-actions {

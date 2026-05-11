@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { getPeptide } from "../lib/calculations";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "../types";
 import { Card, Input, Select, SectionHeader } from "./ui";
+import { useLongPress } from "../hooks/useLongPress";
 
 const pageSizes = [5, 10, 25];
 const statuses: DoseStatus[] = ["taken", "skipped", "missed", "snoozed"];
@@ -10,10 +11,12 @@ export function DoseHistory({
   state,
   scheduledDoses,
   onUpdateLog,
+  onDeleteLog,
 }: {
   state: AppState;
   scheduledDoses: ScheduledDose[];
   onUpdateLog: (log: DoseLog) => void;
+  onDeleteLog: (log: DoseLog) => void;
 }) {
   const [pageSize, setPageSize] = useState(5);
   const [page, setPage] = useState(0);
@@ -43,50 +46,7 @@ export function DoseHistory({
         }
       />
 
-      {visible.map((log) => {
-        const dose = doseById.get(log.scheduledDoseId);
-        const peptide = dose ? getPeptide(state.peptides, dose.peptideId) : undefined;
-        const timestamp = log.takenAt || log.loggedAt;
-        return (
-          <Card key={log.id} className="history-row">
-            <div className="dose-main">
-              <div>
-                <p className="muted">{new Date(timestamp).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
-                <h3>{peptide?.name || "Historical dose"}</h3>
-                <span className="subtle">{dose ? `${dose.doseAmount} ${dose.doseUnit} - user-entered note` : log.scheduledDoseId}</span>
-              </div>
-              <span className={`status-pill ${log.status}`}>{log.status}</span>
-            </div>
-            <div className="history-edit-grid">
-              <Select
-                value={log.status}
-                onChange={(event) => onUpdateLog({ ...log, status: event.target.value as DoseStatus })}
-                aria-label="Edit dose status"
-                title="Edit the status for this dose log."
-              >
-                {statuses.map((status) => <option key={status}>{status}</option>)}
-              </Select>
-              <Input
-                type="datetime-local"
-                value={timestamp.slice(0, 16)}
-                onChange={(event) => {
-                  const nextTime = new Date(event.target.value).toISOString();
-                  onUpdateLog({ ...log, loggedAt: nextTime, takenAt: log.status === "taken" ? nextTime : log.takenAt });
-                }}
-                aria-label="Edit dose timestamp"
-                title="Edit when this dose was logged."
-              />
-            </div>
-            <Input
-              value={log.notes}
-              onChange={(event) => onUpdateLog({ ...log, notes: event.target.value })}
-              placeholder="Notes"
-              aria-label="Edit dose notes"
-              title="Edit private notes for this logged dose."
-            />
-          </Card>
-        );
-      })}
+      {visible.map((log) => <DoseHistoryRow key={log.id} log={log} state={state} dose={doseById.get(log.scheduledDoseId)} onUpdateLog={onUpdateLog} onDeleteLog={onDeleteLog} />)}
 
       {logs.length > pageSize && (
         <div className="pager">
@@ -96,5 +56,66 @@ export function DoseHistory({
         </div>
       )}
     </section>
+  );
+}
+
+function DoseHistoryRow({
+  log,
+  state,
+  dose,
+  onUpdateLog,
+  onDeleteLog,
+}: {
+  log: DoseLog;
+  state: AppState;
+  dose?: ScheduledDose;
+  onUpdateLog: (log: DoseLog) => void;
+  onDeleteLog: (log: DoseLog) => void;
+}) {
+  const peptide = dose ? getPeptide(state.peptides, dose.peptideId) : undefined;
+  const timestamp = log.takenAt || log.loggedAt;
+  const longPress = useLongPress(() => {
+    if (window.confirm("Delete this dose log?")) onDeleteLog(log);
+  });
+
+  return (
+    <Card className="history-row long-pressable" {...longPress}>
+      <div className="dose-main">
+        <div>
+          <p className="muted">{new Date(timestamp).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
+          <h3>{peptide?.name || "Historical dose"}</h3>
+          <span className="subtle">{dose ? `${dose.doseAmount} ${dose.doseUnit} - user-entered note` : log.scheduledDoseId}</span>
+        </div>
+        <span className={`status-pill ${log.status}`}>{log.status}</span>
+      </div>
+      <span className="press-hint">Hold to delete</span>
+      <div className="history-edit-grid">
+        <Select
+          value={log.status}
+          onChange={(event) => onUpdateLog({ ...log, status: event.target.value as DoseStatus })}
+          aria-label="Edit dose status"
+          title="Edit the status for this dose log."
+        >
+          {statuses.map((status) => <option key={status}>{status}</option>)}
+        </Select>
+        <Input
+          type="datetime-local"
+          value={timestamp.slice(0, 16)}
+          onChange={(event) => {
+            const nextTime = new Date(event.target.value).toISOString();
+            onUpdateLog({ ...log, loggedAt: nextTime, takenAt: log.status === "taken" ? nextTime : log.takenAt });
+          }}
+          aria-label="Edit dose timestamp"
+          title="Edit when this dose was logged."
+        />
+      </div>
+      <Input
+        value={log.notes}
+        onChange={(event) => onUpdateLog({ ...log, notes: event.target.value })}
+        placeholder="Notes"
+        aria-label="Edit dose notes"
+        title="Edit private notes for this logged dose."
+      />
+    </Card>
   );
 }

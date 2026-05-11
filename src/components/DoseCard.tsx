@@ -53,13 +53,6 @@ export function DoseCard({
             aria-label="Edit timestamp"
             title="Edit the timestamp for this log."
           />
-          <Input
-            value={log.notes}
-            onChange={(event) => onUpdateLog({ ...log, notes: event.target.value })}
-            placeholder="Dose notes"
-            aria-label="Dose notes"
-            title="Add a private note for this logged item."
-          />
           {log.takenLate && <p className="late-note">Taken late</p>}
         </div>
       )}

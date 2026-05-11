@@ -10,7 +10,7 @@ export function NextDoseBar({ dose, peptide, onView }: { dose?: ScheduledDose; p
       <div>
         <span>Next dose</span>
         <strong>
-          {peptide.nickname || peptide.name} at {time}
+          {peptide.name} at {time}
         </strong>
       </div>
       <button type="button" onClick={onView} title="Open today's scheduled doses.">View</button>
