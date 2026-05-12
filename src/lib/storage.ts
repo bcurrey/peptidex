@@ -21,7 +21,7 @@ const normalizeState = (state: Partial<AppState>): AppState => {
     ...state,
     user: state.user || seeded.user,
     peptides: mergedPeptides,
-    protocols: state.protocols || seeded.protocols,
+    protocols: (state.protocols || seeded.protocols).map((protocol) => ({ ...protocol, noEndDate: protocol.noEndDate ?? false })),
     doseLogs: state.doseLogs || seeded.doseLogs,
     bodyMetrics: state.bodyMetrics || seeded.bodyMetrics,
     metricConfigs: [

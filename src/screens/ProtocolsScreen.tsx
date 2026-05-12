@@ -33,6 +33,7 @@ const newProtocol = (): Protocol => ({
   name: "",
   cycleStartDate: new Date().toISOString().slice(0, 10),
   cycleEndDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
+  noEndDate: false,
   paused: false,
   completed: false,
   items: [],
@@ -152,8 +153,16 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
           <Input placeholder="Protocol name" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} title="Name this protocol." />
           <div className="two-col">
             <Input type="date" value={editing.cycleStartDate} onChange={(e) => setEditing({ ...editing, cycleStartDate: e.target.value })} title="Protocol cycle start date." />
-            <Input type="date" value={editing.cycleEndDate} onChange={(e) => setEditing({ ...editing, cycleEndDate: e.target.value })} title="Protocol cycle end date." />
+            {!editing.noEndDate && <Input type="date" value={editing.cycleEndDate} onChange={(e) => setEditing({ ...editing, cycleEndDate: e.target.value })} title="Protocol cycle end date." />}
           </div>
+          <label className="toggle-line" title="Keep this protocol active without a planned end date.">
+            <input
+              type="checkbox"
+              checked={!!editing.noEndDate}
+              onChange={(e) => setEditing({ ...editing, noEndDate: e.target.checked })}
+            />
+            No end date
+          </label>
           <div className="segmented">
             <button className={editing.paused ? "" : "active"} onClick={() => setEditing({ ...editing, paused: false, completed: false })} title="Set this protocol as active.">Active</button>
             <button className={editing.paused ? "active" : ""} onClick={() => setEditing({ ...editing, paused: true })} title="Pause scheduled items for this protocol.">Paused</button>

@@ -41,10 +41,12 @@ export function HomeScreen({
   });
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const profileName = state.user.name.trim();
+  const shouldPersonalize = profileName && profileName.toLowerCase() !== "brandon";
 
   return (
     <div className="screen">
-      <ScreenHeader eyebrow={new Date().toLocaleDateString([], { weekday: "long" })} title={`${greeting}, ${state.user.name}`} />
+      <ScreenHeader eyebrow={new Date().toLocaleDateString([], { weekday: "long" })} title={shouldPersonalize ? `${greeting}, ${profileName}` : greeting} />
       <section className="hero-grid">
         {isWidgetVisible("next-dose") && <Card className="score-card compact-summary">
           <div>

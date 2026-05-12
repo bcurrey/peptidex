@@ -87,6 +87,7 @@ export interface Protocol {
   name: string;
   cycleStartDate: string;
   cycleEndDate: string;
+  noEndDate?: boolean;
   items: ProtocolItem[];
   paused: boolean;
   completed: boolean;

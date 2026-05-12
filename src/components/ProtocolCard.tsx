@@ -1,8 +1,8 @@
 import { CalendarDays, Pause, Play } from "lucide-react";
 import { daysBetween } from "../lib/calculations";
 import { Peptide, Protocol } from "../types";
-import { Card } from "./ui";
 import { useLongPress } from "../hooks/useLongPress";
+import { Card } from "./ui";
 
 export function ProtocolCard({
   protocol,
@@ -18,10 +18,12 @@ export function ProtocolCard({
   onDelete?: () => void;
 }) {
   const today = new Date().toISOString().slice(0, 10);
-  const daysLeft = daysBetween(today, protocol.cycleEndDate);
+  const daysLeft = protocol.noEndDate ? null : daysBetween(today, protocol.cycleEndDate);
   const currentWeek = Math.max(1, Math.ceil(daysBetween(protocol.cycleStartDate, today) / 7));
-  const totalWeeks = Math.max(1, Math.ceil(daysBetween(protocol.cycleStartDate, protocol.cycleEndDate) / 7));
-  const dateRange = `${new Date(`${protocol.cycleStartDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })} → ${new Date(`${protocol.cycleEndDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })}`;
+  const totalWeeks = protocol.noEndDate ? null : Math.max(1, Math.ceil(daysBetween(protocol.cycleStartDate, protocol.cycleEndDate) / 7));
+  const startLabel = new Date(`${protocol.cycleStartDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" });
+  const endLabel = protocol.noEndDate ? "No end date" : new Date(`${protocol.cycleEndDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" });
+  const dateRange = `${startLabel} -> ${endLabel}`;
   const longPress = useLongPress(() => {
     if (onDelete && window.confirm(`Delete "${protocol.name}"? This removes the saved protocol and its generated dose logs.`)) onDelete();
   });
@@ -31,7 +33,7 @@ export function ProtocolCard({
       <div className="row-between">
         <div>
           <h3>{protocol.name}</h3>
-          <p className="muted">Week {currentWeek} of {totalWeeks} · {daysLeft} days left</p>
+          <p className="muted">{protocol.noEndDate ? `Week ${currentWeek} - Ongoing` : `Week ${currentWeek} of ${totalWeeks} - ${daysLeft} days left`}</p>
         </div>
         <button className="btn ghost action-text" type="button">
           {protocol.paused ? <Pause size={15} /> : <Play size={15} />}
