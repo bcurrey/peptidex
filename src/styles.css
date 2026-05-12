@@ -292,6 +292,16 @@ h3 { font-size: 15px; line-height: 1.2; }
 .dose-history {
   display: grid;
   gap: 12px;
+  margin-top: 10px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-medium);
+}
+
+.dose-history .section-title {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
 }
 
 .dose-history .section-title .field {
@@ -490,7 +500,16 @@ textarea.field { resize: vertical; }
 .segmented {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
+}
+
+.segmented button {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-inline: 8px;
+  font-size: 13px;
 }
 .nested-card {
   display: grid;
@@ -1625,6 +1644,12 @@ body {
 .score-strip small {
   color: var(--text-tertiary);
   font-size: 11px;
+}
+
+.score-strip em {
+  color: var(--text-quaternary);
+  font-size: 10px;
+  font-style: normal;
 }
 
 .breakdown-row {

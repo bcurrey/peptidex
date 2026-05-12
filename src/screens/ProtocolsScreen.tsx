@@ -103,7 +103,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
             key={protocol.id}
             protocol={protocol}
             peptides={state.peptides}
-            adherence={Math.max(calculateCompliance(state.doseLogs), 95)}
+            adherence={calculateCompliance(state.doseLogs)}
             onClick={() => setEditing(protocol)}
             onDelete={() => deleteProtocolById(protocol.id)}
           />

@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { Bell, CalendarCheck, Flame, Target } from "lucide-react";
+import { CalendarCheck, Flame, Target } from "lucide-react";
 import { DoseCard } from "../components/DoseCard";
 import { DoseHistory } from "../components/DoseHistory";
 import { ProgressRing } from "../components/ProgressRing";
@@ -27,6 +27,7 @@ export function HomeScreen({
 }) {
   const stats = getAppStats(state);
   const dashboardWidgets = (state.dashboardWidgets || []).sort((a, b) => a.order - b.order);
+  const isWidgetVisible = (type: string) => dashboardWidgets.some((widget) => widget.type === type && widget.visible);
   const todayKey = toDateKey(new Date());
   const todaysDoses = scheduledDoses.filter((dose) => dose.scheduledAt.startsWith(todayKey));
   const completed = todaysDoses.filter((dose) => getLogForDose(state.doseLogs, dose.id)?.status === "taken").length;
@@ -38,12 +39,14 @@ export function HomeScreen({
     const done = state.doseLogs.some((log) => log.loggedAt.startsWith(key) && log.status === "taken");
     return { label: date.toLocaleDateString([], { weekday: "short" }).slice(0, 1), done };
   });
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
     <div className="screen">
-      <ScreenHeader eyebrow={new Date().toLocaleDateString([], { weekday: "long" })} title={`Good morning, ${state.user.name}`} action={<button className="icon-button" title="Reminder settings placeholder."><Bell size={18} /></button>} />
+      <ScreenHeader eyebrow={new Date().toLocaleDateString([], { weekday: "long" })} title={`${greeting}, ${state.user.name}`} />
       <section className="hero-grid">
-        <Card className="score-card compact-summary">
+        {isWidgetVisible("next-dose") && <Card className="score-card compact-summary">
           <div>
             <p className="eyebrow">Today summary</p>
             <h2>{progress}% complete</h2>
@@ -51,9 +54,9 @@ export function HomeScreen({
             <p className="subtle">Track scheduled items and user-entered notes for today.</p>
           </div>
           <ProgressRing value={progress} label="today" />
-        </Card>
-        <StatCard label="Current streak" value={`${stats.currentStreak}d`} icon={<Flame size={18} />} />
-        <StatCard label="Doses today" value={`${completed}/${todaysDoses.length}`} icon={<Target size={18} />} />
+        </Card>}
+        {isWidgetVisible("streak") && <StatCard label="Current streak" value={`${stats.currentStreak}d`} icon={<Flame size={18} />} />}
+        {isWidgetVisible("adherence") && <StatCard label="Doses today" value={`${completed}/${todaysDoses.length}`} icon={<Target size={18} />} />}
       </section>
 
       <section id="todays-doses" className="anchor-section">
@@ -71,7 +74,7 @@ export function HomeScreen({
       )) : <EmptyState title="No upcoming doses" body="Create or activate a protocol to see scheduled items here." />}
       </section>
 
-      <Card>
+      {isWidgetVisible("protocol-progress") && <Card>
         <div className="row-between">
           <div>
             <p className="eyebrow">Weekly completion</p>
@@ -82,13 +85,13 @@ export function HomeScreen({
         <div className="week-row weekly-strip">
           {week.map((day, index) => <span key={index} className={day.done ? "done" : ""}>{day.label}</span>)}
         </div>
-      </Card>
+      </Card>}
 
-      <Card className="plan-card compact-plan">
+      {isWidgetVisible("insight-cards") && <Card className="plan-card compact-plan">
         <p className="eyebrow">Smart daily plan</p>
         <h2>{todaysDoses.length ? `${todaysDoses.length} scheduled item${todaysDoses.length === 1 ? "" : "s"}` : "No active schedule"}</h2>
         <p>{todaysDoses.length ? "Your active protocol schedule is ready to log. Dosage values are stored only as your notes." : "Create a protocol when you are ready to schedule tracking reminders."}</p>
-      </Card>
+      </Card>}
 
       <DoseHistory state={state} scheduledDoses={scheduledDoses} onUpdateLog={updateLog} onDeleteLog={deleteLog} />
 

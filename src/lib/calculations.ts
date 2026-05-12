@@ -68,7 +68,7 @@ export const calculateCurrentStreak = (logs: DoseLog[]) => {
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
-  return Math.max(streak, 22);
+  return streak;
 };
 
 export const calculateBestStreak = (logs: DoseLog[]) => {
@@ -82,14 +82,14 @@ export const calculateBestStreak = (logs: DoseLog[]) => {
     best = Math.max(best, current);
     previous = day;
   });
-  return Math.max(best, 22);
+  return best;
 };
 
 export const getAppStats = (state: AppState) => {
   const totalDoses = state.doseLogs.length;
   return {
     totalDoses,
-    compliance: Math.max(calculateCompliance(state.doseLogs), 95),
+    compliance: calculateCompliance(state.doseLogs),
     currentStreak: calculateCurrentStreak(state.doseLogs),
     bestStreak: calculateBestStreak(state.doseLogs),
   };

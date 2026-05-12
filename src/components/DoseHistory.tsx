@@ -20,8 +20,11 @@ export function DoseHistory({
 }) {
   const [pageSize, setPageSize] = useState(5);
   const [page, setPage] = useState(0);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const doseById = useMemo(() => new Map(scheduledDoses.map((dose) => [dose.id, dose])), [scheduledDoses]);
-  const logs = [...state.doseLogs].sort((a, b) => (b.takenAt || b.loggedAt).localeCompare(a.takenAt || a.loggedAt));
+  const logs = [...state.doseLogs]
+    .filter((log) => !deletedIds.has(log.id))
+    .sort((a, b) => (b.takenAt || b.loggedAt).localeCompare(a.takenAt || a.loggedAt));
   const pageCount = Math.max(1, Math.ceil(logs.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
   const visible = logs.slice(safePage * pageSize, safePage * pageSize + pageSize);
@@ -46,7 +49,19 @@ export function DoseHistory({
         }
       />
 
-      {visible.map((log) => <DoseHistoryRow key={log.id} log={log} state={state} dose={doseById.get(log.scheduledDoseId)} onUpdateLog={onUpdateLog} onDeleteLog={onDeleteLog} />)}
+      {visible.map((log) => (
+        <DoseHistoryRow
+          key={log.id}
+          log={log}
+          state={state}
+          dose={doseById.get(log.scheduledDoseId)}
+          onUpdateLog={onUpdateLog}
+          onDeleteLog={(deletedLog) => {
+            setDeletedIds((current) => new Set(current).add(deletedLog.id));
+            onDeleteLog(deletedLog);
+          }}
+        />
+      ))}
 
       {logs.length > pageSize && (
         <div className="pager">

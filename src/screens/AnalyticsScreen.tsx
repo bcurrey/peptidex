@@ -131,10 +131,10 @@ export function AnalyticsScreen({
       )}
 
       <div className="score-strip">
-        <span><strong>{scores.daily}</strong><small>Daily</small></span>
-        <span><strong>{scores.weekly}</strong><small>Weekly</small></span>
-        <span><strong>{scores.recovery}</strong><small>Recovery</small></span>
-        <span><strong>{scores.consistency}%</strong><small>Consistency</small></span>
+        <span title="Daily score is a 0-100 summary of adherence, sleep, mood, recovery, and activity."><strong>{scores.daily}</strong><small>Daily score</small><em>0-100</em></span>
+        <span title="Weekly score is a 0-100 summary of recent consistency and daily score."><strong>{scores.weekly}</strong><small>Weekly score</small><em>0-100</em></span>
+        <span title="Recovery score is a 0-100 score from pain/recovery logs."><strong>{scores.recovery}</strong><small>Recovery</small><em>0-100</em></span>
+        <span title="Consistency is the percentage of logged scheduled doses marked taken."><strong>{scores.consistency}%</strong><small>Consistency</small><em>taken</em></span>
       </div>
 
       <Card className="score-breakdown">
@@ -175,7 +175,7 @@ export function AnalyticsScreen({
         <p className="eyebrow">Daily check-in</p>
         <div className="segmented">
           {(["Quick Check-In", "Full Check-In", "Custom Log Entry"] as CheckInMode[]).map((item) => (
-            <button key={item} className={mode === item ? "active" : ""} onClick={() => setMode(item)} title={`${item} controls how many enabled metrics appear.`}>{item.replace(" Check-In", "")}</button>
+            <button key={item} className={mode === item ? "active" : ""} onClick={() => setMode(item)} title={`${item} controls how many enabled metrics appear.`}>{item === "Custom Log Entry" ? "Custom" : item.replace(" Check-In", "")}</button>
           ))}
         </div>
         <div className="stack tight mt-12">

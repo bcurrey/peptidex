@@ -1,5 +1,5 @@
-const CACHE = "peptidex-v3";
-const ASSETS = ["/index.html", "/manifest.webmanifest", "/icon.svg", "/icon.png"];
+const CACHE = "peptidex-v4";
+const ASSETS = ["/index.html", "/manifest.webmanifest", "/icon.svg", "/icon.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
