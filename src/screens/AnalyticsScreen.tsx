@@ -1,7 +1,6 @@
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { AlertTriangle, BarChart3, Camera, Download, Lock, Plus, Shield, Sparkles, Target } from "lucide-react";
+import { AlertTriangle, Camera, Download, Lock, Plus, Shield, Sparkles, Target } from "lucide-react";
 import { Heatmap } from "../components/Heatmap";
-import { StatCard } from "../components/StatCard";
 import { Button, Card, Input, ScreenHeader, Select, Textarea } from "../components/ui";
 import {
   bestWorstPeriod,
@@ -131,20 +130,31 @@ export function AnalyticsScreen({
         </Card>
       )}
 
-      <div className="stats-grid">
-        <StatCard label="Daily score" value={scores.daily} icon={<Target size={18} />} />
-        <StatCard label="Weekly score" value={scores.weekly} icon={<BarChart3 size={18} />} />
-        <StatCard label="Recovery" value={scores.recovery} icon={<Sparkles size={18} />} />
-        <StatCard label="Consistency" value={`${scores.consistency}%`} icon={<Target size={18} />} />
+      <div className="score-strip">
+        <span><strong>{scores.daily}</strong><small>Daily</small></span>
+        <span><strong>{scores.weekly}</strong><small>Weekly</small></span>
+        <span><strong>{scores.recovery}</strong><small>Recovery</small></span>
+        <span><strong>{scores.consistency}%</strong><small>Consistency</small></span>
       </div>
 
       <Card className="score-breakdown">
         <p className="eyebrow">Score breakdown</p>
-        {scores.factors.map((factor) => <div className="insight-row" key={factor}><Sparkles size={16} /> {factor}</div>)}
+        {[
+          ["Adherence", scores.consistency],
+          ["Sleep", Number(scores.factors[1]?.match(/\d+/)?.[0] || 0)],
+          ["Mood", Number(scores.factors[2]?.match(/\d+/)?.[0] || 0)],
+          ["Recovery", scores.recovery],
+        ].map(([label, value]) => (
+          <div className="breakdown-row" key={label}>
+            <span>{label}</span>
+            <i><b style={{ width: `${value}%` }} /></i>
+            <strong>{value}%</strong>
+          </div>
+        ))}
       </Card>
 
       <Card>
-        <p className="eyebrow">Visualization system</p>
+        <p className="eyebrow">Trends</p>
         <div className="range-row">{ranges.map((item) => <button key={item} className={range === item ? "active" : ""} onClick={() => setRange(item)} title={`Show chart data for ${item}.`}>{item}</button>)}</div>
         <div className="two-col mt-12">
           <Select value={overlayMetricId} onChange={(e) => setOverlayMetricId(e.target.value)} title="Choose a second metric to overlay on the chart.">
@@ -155,11 +165,10 @@ export function AnalyticsScreen({
         <ChartCard title="Weight trend" series={weightSeries} overlay={overlaySeries} showAverage={showAverage} />
       </Card>
 
-      <div className="chart-grid">
+      <div className="insight-strip">
         <MiniChartCard title="Sleep quality improving" metricId="metric-sleep-quality" state={state} />
         <MiniChartCard title="Mood stable last 14 days" metricId="metric-mood" state={state} />
         <MiniChartCard title="Energy variability increased" metricId="metric-energy" state={state} />
-        <RadarCard state={state} />
       </div>
 
       <Card>
@@ -366,7 +375,6 @@ function ChartCard({ title, series, overlay, showAverage }: { title: string; ser
         {overlay.map((point) => <b key={point.label} style={{ height: `${Math.max(8, (point.value / max) * 100)}%` }} />)}
         {showAverage && avg.map((value, index) => <em key={index} style={{ height: `${Math.max(8, (value / max) * 100)}%` }} />)}
       </div>
-      <p className="subtle">Supports line, bar, area, radar, heatmap, overlays, moving averages, date range comparisons, and export placeholders.</p>
     </div>
   );
 }
@@ -380,20 +388,6 @@ function MiniChartCard({ title, metricId, state }: { title: string; metricId: st
       <p className="eyebrow">{title}</p>
       <div className="spark-bars">{series.map((point) => <span key={point.label} style={{ height: `${Math.max(14, (point.value / max) * 100)}%` }} />)}</div>
       <strong>{trend ? `${trend.change >= 0 ? "+" : ""}${trend.change}` : "Not enough data"}</strong>
-    </Card>
-  );
-}
-
-function RadarCard({ state }: { state: AppState }) {
-  const values = ["metric-mood", "metric-energy", "metric-sleep-quality", "metric-focus", "metric-pain"].map((id) => {
-    const entries = metricEntriesFor(state, id);
-    return Number(entries[entries.length - 1]?.value || 5);
-  });
-  return (
-    <Card className="mini-chart-card">
-      <p className="eyebrow">Wellness radar</p>
-      <div className="radar">{values.map((value, index) => <span key={index} style={{ transform: `rotate(${index * 72}deg) translateY(-${value * 4}px)` }} />)}</div>
-      <strong>Balanced</strong>
     </Card>
   );
 }
@@ -421,7 +415,7 @@ function buildTimeline(state: AppState, filter: TimelineFilter) {
   );
   const doseEntries = state.doseLogs
     .filter((log) => log.status !== "taken" || recentTakenIds.has(log.id))
-    .map((log) => ({ id: log.id, date: log.loggedAt, type: "Doses", title: log.status === "taken" ? "Dose taken" : "Dose update", body: `${log.scheduledDoseId} marked ${log.status}. ${log.notes}` }));
+    .map((log) => ({ id: log.id, date: log.loggedAt, type: "Doses", title: log.status === "taken" ? "Dose taken" : "Dose update", body: `Marked ${log.status}${log.notes ? ` · ${log.notes}` : ""}` }));
   const metricEntries = state.metricEntries.map((entry) => {
     const metric = state.metricConfigs.find((config) => config.id === entry.metricId);
     return { id: entry.id, date: entry.date, type: metric?.category === "Side Effects" ? "Side effects" : "Metrics", title: `${metric?.name || "Metric"} logged`, body: `Value: ${entry.value}` };

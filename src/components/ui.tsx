@@ -6,10 +6,11 @@ import { appName, safetyCopy } from "../theme";
 export function Card({
   children,
   className = "",
+  variant = "base",
   ...props
-}: HTMLAttributes<HTMLElement> & { children: ReactNode; className?: string }) {
+}: HTMLAttributes<HTMLElement> & { children: ReactNode; className?: string; variant?: "base" | "raised" | "stat" | "wide" }) {
   return (
-    <section className={`glass-card ${className}`} {...props}>
+    <section className={`glass-card card-${variant} ${className}`} {...props}>
       {children}
     </section>
   );
@@ -20,7 +21,7 @@ export function Button({
   variant = "primary",
   className = "",
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "danger" }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" | "danger" | "destructive" }) {
   return (
     <button className={`btn ${variant} ${className}`} {...props}>
       {children}
@@ -80,6 +81,18 @@ export function SectionHeader({ title, meta, action }: { title: string; meta?: s
       <h2>{title}</h2>
       {action || (meta ? <span>{meta}</span> : null)}
     </div>
+  );
+}
+
+export function Chip({ children, variant = "category" }: { children: ReactNode; variant?: "status-taken" | "status-missed" | "status-upcoming" | "category" }) {
+  return <span className={`chip chip-${variant}`}>{children}</span>;
+}
+
+export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (checked: boolean) => void; label?: string }) {
+  return (
+    <button type="button" className={`toggle ${checked ? "checked" : ""}`} onClick={() => onChange(!checked)} aria-pressed={checked} aria-label={label}>
+      <span />
+    </button>
   );
 }
 

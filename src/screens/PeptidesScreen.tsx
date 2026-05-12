@@ -52,7 +52,7 @@ export function PeptidesScreen({ state, setState }: { state: AppState; setState:
       <ScreenHeader
         eyebrow="Library"
         title="Peptides"
-        action={<Button onClick={() => setEditing(emptyPeptide)} title="Add a custom peptide, pill, or supplement item to track."><Plus size={17} /> Add</Button>}
+        action={<Button variant="ghost" onClick={() => setEditing(emptyPeptide)} title="Add a custom peptide, pill, or supplement item to track."><Plus size={17} /> Add</Button>}
       />
       <div className="search-box">
         <Search size={18} />
@@ -102,7 +102,7 @@ export function PeptidesScreen({ state, setState }: { state: AppState; setState:
         </div>
       )}
 
-      <div className="stack">
+      <div className="peptide-list">
         {peptides.map((peptide) => <PeptideCard key={peptide.id} peptide={peptide} onClick={() => setEditing(peptide)} />)}
       </div>
     </div>

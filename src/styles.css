@@ -1314,3 +1314,407 @@ textarea.field { resize: vertical; }
   .range-row { grid-template-columns: repeat(3, 1fr); }
   .protocol-dose-grid, .time-builder { grid-template-columns: 1fr; }
 }
+
+/* Premium redesign layer */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", sans-serif;
+  color: var(--text-primary);
+}
+
+.app-shell {
+  max-width: 560px;
+  padding: calc(env(safe-area-inset-top) + 12px) 16px calc(120px + env(safe-area-inset-bottom));
+}
+
+.ambient,
+.topbar,
+.safety-banner,
+.reset-data-button {
+  display: none;
+}
+
+.glass-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.card-raised { background: var(--bg-card-raised); }
+.card-stat { min-height: 88px; padding: 14px 12px; }
+.card-wide { border-radius: var(--radius-lg); }
+
+.screen {
+  gap: 24px;
+}
+
+.screen-header {
+  margin-top: 2px;
+}
+
+.screen-header h1 {
+  font-size: 28px;
+  line-height: 1.08;
+  letter-spacing: -0.3px;
+}
+
+.eyebrow {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin-top: 0;
+}
+
+.section-title h2,
+.section-title h3 {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.btn {
+  min-height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--accent-green);
+  color: #0A0A0A;
+  font-weight: 700;
+}
+
+.btn.secondary {
+  color: var(--text-primary);
+  background: var(--bg-interactive);
+}
+
+.btn.ghost {
+  min-height: 36px;
+  border-color: var(--border-medium);
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.btn.danger,
+.btn.destructive {
+  color: var(--accent-red);
+  background: var(--accent-red-dim);
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 0;
+  color: var(--text-secondary);
+  background: var(--bg-interactive);
+}
+
+.chip,
+.mini-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  color: var(--text-tertiary);
+  background: var(--bg-interactive);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.chip-status-taken,
+.status-pill.taken {
+  color: var(--accent-green);
+  background: var(--accent-green-dim);
+}
+
+.chip-status-missed,
+.status-pill.missed {
+  color: var(--accent-red);
+  background: var(--accent-red-dim);
+}
+
+.chip-status-upcoming,
+.status-pill.upcoming {
+  color: var(--text-secondary);
+  background: var(--bg-interactive);
+}
+
+.bottom-nav {
+  height: calc(49px + env(safe-area-inset-bottom));
+  padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+  border-top: 0.5px solid var(--border-subtle);
+  background: rgba(20,20,20,0.78);
+  backdrop-filter: blur(22px);
+  box-shadow: none;
+}
+
+.bottom-nav button {
+  border-radius: 0;
+  color: var(--text-tertiary);
+  background: transparent;
+}
+
+.bottom-nav button.active {
+  color: var(--accent-green);
+  background: transparent;
+}
+
+.bottom-nav svg { width: 22px; height: 22px; }
+.bottom-nav span { font-size: 10px; }
+
+.next-dose {
+  left: 0;
+  right: 0;
+  bottom: calc(49px + env(safe-area-inset-bottom));
+  max-width: 560px;
+  margin: 0 auto;
+  min-height: 44px;
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid var(--accent-amber);
+  background: var(--bg-card);
+  box-shadow: none;
+}
+
+.next-dose strong {
+  font-size: 15px;
+}
+
+.next-dose button {
+  color: var(--accent-green);
+  background: transparent;
+}
+
+.search-box {
+  min-height: 36px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-interactive);
+}
+
+.tabs-scroll button {
+  min-height: 28px;
+  padding: 0 12px;
+  border: 0;
+  color: var(--text-secondary);
+  background: var(--bg-interactive);
+  font-size: 13px;
+}
+
+.tabs-scroll .active {
+  color: #0A0A0A;
+  background: var(--accent-green);
+}
+
+.peptide-list {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.peptide-list-row {
+  width: 100%;
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  background: transparent;
+  text-align: left;
+}
+
+.peptide-list-row:last-child { border-bottom: 0; }
+.peptide-list-row h3 { font-size: 15px; font-weight: 600; }
+.peptide-list-row span:not(.chip) { color: var(--text-tertiary); font-size: 13px; }
+
+.protocol-card {
+  border-radius: var(--radius-lg);
+}
+
+.protocol-card .mini-progress {
+  height: 3px;
+}
+
+.protocol-meta {
+  justify-content: space-between;
+}
+
+.template-section .template-grid {
+  display: flex;
+  overflow-x: auto;
+  grid-template-columns: none;
+  padding-bottom: 4px;
+}
+
+.template-grid button {
+  flex: 0 0 160px;
+  min-height: 100px;
+}
+
+.dose-card {
+  gap: 10px;
+  border-radius: var(--radius-md);
+  border-left: 3px solid transparent;
+}
+
+.dose-card.missed { border-left-color: var(--accent-red); }
+.dose-card.taken { border-left-color: var(--accent-green); opacity: 0.62; }
+.dose-main h3 { font-size: 17px; font-weight: 600; }
+.dose-main .subtle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dose-actions {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+.dose-actions .btn:first-child { flex: 1; }
+.logged-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+.ring-wrap {
+  width: 56px;
+  height: 56px;
+}
+
+.ring-center strong { font-size: 16px; }
+.ring-center span { font-size: 10px; }
+
+.score-strip,
+.insight-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.score-strip::-webkit-scrollbar,
+.insight-strip::-webkit-scrollbar { display: none; }
+
+.score-strip span {
+  flex: 0 0 80px;
+  min-height: 72px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.score-strip strong {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.score-strip small {
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+.breakdown-row {
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 10px;
+}
+
+.breakdown-row span {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.breakdown-row i {
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--bg-interactive);
+}
+
+.breakdown-row b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-green);
+}
+
+.breakdown-row strong {
+  color: var(--accent-green);
+  font-size: 15px;
+  text-align: right;
+}
+
+.range-row {
+  display: flex;
+  overflow-x: auto;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--bg-interactive);
+}
+
+.range-row button {
+  flex: 0 0 auto;
+  min-width: 48px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+}
+
+.range-row button.active {
+  color: var(--accent-green);
+  background: var(--bg-card);
+}
+
+.premium-chart .subtle { display: none; }
+
+.insight-strip .mini-chart-card {
+  flex: 0 0 200px;
+  min-height: 72px;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent-green);
+}
+
+.toggle {
+  width: 36px;
+  height: 22px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--bg-interactive);
+  padding: 2px;
+}
+
+.toggle span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.toggle.checked {
+  background: var(--accent-green);
+}
+
+.toggle.checked span {
+  transform: translateX(14px);
+  background: #0A0A0A;
+}

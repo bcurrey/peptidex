@@ -4,10 +4,16 @@
   "description": "Local-first peptide and protocol tracking app.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#060807",
-  "theme_color": "#060807",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
   "orientation": "portrait",
   "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon.svg",
       "sizes": "any",

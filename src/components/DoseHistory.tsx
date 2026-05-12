@@ -84,11 +84,10 @@ function DoseHistoryRow({
         <div>
           <p className="muted">{new Date(timestamp).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
           <h3>{peptide?.name || "Historical dose"}</h3>
-          <span className="subtle">{dose ? `${dose.doseAmount} ${dose.doseUnit} - user-entered note` : log.scheduledDoseId}</span>
+          <span className="subtle">{dose ? `${dose.doseAmount} ${dose.doseUnit}` : "Imported or historical log"}</span>
         </div>
         <span className={`status-pill ${log.status}`}>{log.status}</span>
       </div>
-      <span className="press-hint">Hold to delete</span>
       <div className="history-edit-grid">
         <Select
           value={log.status}

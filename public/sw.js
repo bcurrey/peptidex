@@ -1,5 +1,5 @@
-const CACHE = "peptidex-v2";
-const ASSETS = ["/index.html", "/manifest.webmanifest", "/icon.svg"];
+const CACHE = "peptidex-v3";
+const ASSETS = ["/index.html", "/manifest.webmanifest", "/icon.svg", "/icon.png"];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

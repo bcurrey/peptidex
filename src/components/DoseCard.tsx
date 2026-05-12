@@ -1,4 +1,4 @@
-import { Check, Clock3, SkipForward, X } from "lucide-react";
+import { Check, SkipForward } from "lucide-react";
 import { statusForDose } from "../lib/calculations";
 import { DoseLog, DoseStatus, Peptide, ScheduledDose } from "../types";
 import { Button, Card, Input } from "./ui";
@@ -28,21 +28,23 @@ export function DoseCard({
     <Card className={`dose-card ${status || ""}`}>
       <div className="dose-main">
         <div>
-          <p className="muted">{time} - {dose.instructions || "Scheduled"}</p>
+          <p className="muted">{time} · {dose.instructions || "Scheduled"}</p>
           <h3>{peptide?.name || "Protocol item"}</h3>
           <span className="subtle">
-            {dose.doseAmount} {dose.doseUnit} - user-entered note
+            {dose.doseAmount} {dose.doseUnit}
           </span>
         </div>
         <span className={`status-pill ${status || "pending"}`}>{status || "pending"}</span>
       </div>
       <div className="dose-actions">
-        {!isTaken && <Button onClick={() => onStatus(dose, "taken")} title="Record this dose as taken right now."><Check size={16} /> Take now</Button>}
-        {!isTaken && !isMissed && <Button variant="ghost" onClick={() => onStatus(dose, "snoozed")} title="Snooze this item for later."><Clock3 size={16} /></Button>}
-        {!isTaken && <Button variant="ghost" onClick={() => onStatus(dose, "skipped")} title="Mark this item as intentionally skipped."><SkipForward size={16} /></Button>}
-        {!isMissed && !isTaken && <Button variant="ghost" onClick={() => onStatus(dose, "missed")} title="Mark this scheduled item as missed."><X size={16} /></Button>}
-        {isTaken && <Button variant="ghost" className="action-text" onClick={() => onStatus(dose, "snoozed")} title="Change this log if needed."><Clock3 size={16} /> Edit</Button>}
-        {onDeleteScheduleItem && <Button variant="ghost" className="action-text" onClick={() => onDeleteScheduleItem(dose)} title="Remove this item from its protocol schedule.">Remove</Button>}
+        {isTaken ? (
+          <span className="logged-text"><Check size={16} /> Logged</span>
+        ) : (
+          <>
+            <Button onClick={() => onStatus(dose, "taken")} title="Record this dose as taken right now."><Check size={16} /> {isMissed ? "Log now" : "Take now"}</Button>
+            <Button variant="ghost" className="action-text" onClick={() => onStatus(dose, "skipped")} title="Mark this item as intentionally skipped."><SkipForward size={16} /> Skip</Button>
+          </>
+        )}
       </div>
       {log && onUpdateLog && (
         <div className="log-editor">

@@ -95,7 +95,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
       <ScreenHeader
         eyebrow="Cycles"
         title="Protocols"
-        action={<Button onClick={() => setEditing(newProtocol())} title="Start a blank editable protocol."><Plus size={17} /> Create</Button>}
+        action={<Button variant="ghost" onClick={() => setEditing(newProtocol())} title="Start a blank editable protocol."><Plus size={17} /> Create</Button>}
       />
       <div className="stack">
         {state.protocols.map((protocol) => (
@@ -110,7 +110,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
         ))}
       </div>
 
-      <Card>
+      <Card className="template-section">
         <p className="eyebrow">Editable starter templates</p>
         <div className="template-grid">
           {state.protocolTemplates.map((template) => (

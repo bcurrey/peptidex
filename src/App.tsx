@@ -10,7 +10,7 @@ import { ProtocolsScreen } from "./screens/ProtocolsScreen";
 import { getPeptide, generateScheduledDoses } from "./lib/calculations";
 import { loadState, resetState, saveState } from "./lib/storage";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "./types";
-import { AppHeader, SafetyNotice } from "./components/ui";
+import { Button } from "./components/ui";
 
 export type Tab = "home" | "peptides" | "protocols" | "analytics" | "profile";
 
@@ -90,18 +90,9 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
-      <AppHeader
-        subtitle="Protocol tracker"
-        action={
-        <button className="icon-button" aria-label="Reset sample data" title="Reset local demo data and seed examples." onClick={() => setState(resetState())}>
-          <RotateCcw size={18} />
-        </button>
-        }
-      />
-
-      <SafetyNotice />
+      <Button variant="ghost" className="reset-data-button" aria-label="Reset sample data" title="Reset local demo data and seed examples." onClick={() => setState(resetState())}>
+        <RotateCcw size={16} />
+      </Button>
 
       <main>
         {activeTab === "home" && <HomeScreen {...screenProps} />}

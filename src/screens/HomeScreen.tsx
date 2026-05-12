@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { CalendarCheck, Flame, Target } from "lucide-react";
+import { Bell, CalendarCheck, Flame, Target } from "lucide-react";
 import { DoseCard } from "../components/DoseCard";
 import { DoseHistory } from "../components/DoseHistory";
 import { ProgressRing } from "../components/ProgressRing";
@@ -41,7 +41,7 @@ export function HomeScreen({
 
   return (
     <div className="screen">
-      <ScreenHeader eyebrow="Today" title={`Ready, ${state.user.name}?`} />
+      <ScreenHeader eyebrow={new Date().toLocaleDateString([], { weekday: "long" })} title={`Good morning, ${state.user.name}`} action={<button className="icon-button" title="Reminder settings placeholder."><Bell size={18} /></button>} />
       <section className="hero-grid">
         <Card className="score-card compact-summary">
           <div>
@@ -57,7 +57,7 @@ export function HomeScreen({
       </section>
 
       <section id="todays-doses" className="anchor-section">
-      <SectionHeader title="Today's Scheduled Doses" meta={`${todaysDoses.length} items`} />
+      <SectionHeader title="Today" />
       {todaysDoses.length ? todaysDoses.map((dose) => (
         <DoseCard
           key={dose.id}
@@ -79,7 +79,7 @@ export function HomeScreen({
           </div>
           <CalendarCheck size={22} />
         </div>
-        <div className="week-row">
+        <div className="week-row weekly-strip">
           {week.map((day, index) => <span key={index} className={day.done ? "done" : ""}>{day.label}</span>)}
         </div>
       </Card>
