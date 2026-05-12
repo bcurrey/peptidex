@@ -525,19 +525,22 @@ export const seedState: AppState = {
 export const seedHistoricalLogs = (): DoseLog[] => {
   const logs: DoseLog[] = [];
   let id = 1;
-  for (let offset = -22; offset <= -1; offset += 1) {
-    ["07:30", "13:00", "21:30"].forEach((time, index) => {
-      const status = offset === -8 && index === 2 ? "missed" : "taken";
-      logs.push({
-        id: `seed-log-${id++}`,
-        scheduledDoseId: `historical-${offset}-${time}`,
-        status,
-        loggedAt: `${isoDate(offset)}T${time}:00`,
-        takenAt: status === "taken" ? `${isoDate(offset)}T${time}:00` : undefined,
-        takenLate: false,
-        notes: status === "missed" ? "Missed evening window." : "",
-      });
+  [
+    { offset: -5, time: "07:30", status: "taken" },
+    { offset: -4, time: "13:00", status: "taken" },
+    { offset: -3, time: "21:30", status: "missed" },
+    { offset: -2, time: "07:30", status: "taken" },
+    { offset: -1, time: "21:30", status: "taken" },
+  ].forEach((entry) => {
+    logs.push({
+      id: `seed-log-${id++}`,
+      scheduledDoseId: `historical-${entry.offset}-${entry.time}`,
+      status: entry.status as DoseLog["status"],
+      loggedAt: `${isoDate(entry.offset)}T${entry.time}:00`,
+      takenAt: entry.status === "taken" ? `${isoDate(entry.offset)}T${entry.time}:00` : undefined,
+      takenLate: false,
+      notes: entry.status === "missed" ? "Missed evening window." : "",
     });
-  }
+  });
   return logs;
 };
