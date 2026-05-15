@@ -5,7 +5,7 @@ import { DoseHistory } from "../components/DoseHistory";
 import { ProgressRing } from "../components/ProgressRing";
 import { StatCard } from "../components/StatCard";
 import { Card, EmptyState, ScreenHeader, SectionHeader } from "../components/ui";
-import { getAppStats, getLogForDose, getPeptide, toDateKey } from "../lib/calculations";
+import { getAppStats, getLogForDose, getPeptide, toDateKey, vialMathForItem } from "../lib/calculations";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "../types";
 
 export function HomeScreen({
@@ -43,6 +43,12 @@ export function HomeScreen({
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const profileName = state.user.name.trim();
   const shouldPersonalize = profileName && profileName.toLowerCase() !== "brandon";
+  const activeProtocols = state.protocols.filter((protocol) => !protocol.paused && !protocol.completed);
+  const supplyWarnings = activeProtocols.flatMap((protocol) =>
+    protocol.items
+      .map((item) => ({ protocol, item, peptide: getPeptide(state.peptides, item.peptideId), vial: vialMathForItem(item) }))
+      .filter((entry) => entry.vial?.lowSupply)
+  );
 
   return (
     <div className="screen">
@@ -75,6 +81,32 @@ export function HomeScreen({
         />
       )) : <EmptyState title="No upcoming doses" body="Create or activate a protocol to see scheduled items here." />}
       </section>
+
+      <section>
+        <SectionHeader title="Active protocols" meta={`${activeProtocols.length}`} />
+        {activeProtocols.length ? (
+          <Card className="compact-list">
+            {activeProtocols.slice(0, 3).map((protocol) => (
+              <div className="compact-list-row" key={protocol.id}>
+                <span><strong>{protocol.name}</strong><small>{protocol.noEndDate ? "Ongoing" : `${protocol.cycleStartDate} to ${protocol.cycleEndDate}`}</small></span>
+                <b>{protocol.items.length} item{protocol.items.length === 1 ? "" : "s"}</b>
+              </div>
+            ))}
+          </Card>
+        ) : <EmptyState title="No active protocol" body="Create a protocol to see progress here." />}
+      </section>
+
+      {!!supplyWarnings.length && (
+        <Card className="supply-warning-card">
+          <p className="eyebrow">Supply warnings</p>
+          {supplyWarnings.map(({ protocol, peptide, vial }) => (
+            <div className="compact-list-row" key={`${protocol.id}-${peptide?.id}`}>
+              <span><strong>{peptide?.name || "Protocol item"}</strong><small>{protocol.name}</small></span>
+              <b>{vial?.dosesRemaining || 0} doses left</b>
+            </div>
+          ))}
+        </Card>
+      )}
 
       {isWidgetVisible("protocol-progress") && <Card>
         <div className="row-between">

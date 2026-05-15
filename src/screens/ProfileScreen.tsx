@@ -10,7 +10,7 @@ import { AppState, BodyMetricEntry, Goal } from "../types";
 const goals: Goal[] = ["Muscle Recovery", "Better Sleep", "Cognitive Edge", "Anti-Aging", "Fat Loss", "Immune Support", "Joint Health", "Stress Reduction"];
 const achievementLabels = ["First Dose", "7-Day Streak", "30-Day Streak", "100 Doses Logged", "Perfect Week", "Protocol Creator"];
 
-export function ProfileScreen({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
+export function ProfileScreen({ state, setState, onBack }: { state: AppState; setState: Dispatch<SetStateAction<AppState>>; onBack?: () => void }) {
   const stats = getAppStats(state);
   const metric = state.bodyMetrics[0] || { id: "metric-new", date: new Date().toISOString().slice(0, 10) };
 
@@ -31,7 +31,7 @@ export function ProfileScreen({ state, setState }: { state: AppState; setState: 
 
   return (
     <div className="screen">
-      <ScreenHeader eyebrow="Account" title="Profile" />
+      <ScreenHeader eyebrow="Account" title="Profile" action={onBack ? <Button variant="ghost" onClick={onBack}>Back</Button> : undefined} />
       <Card className="profile-card">
         <div className="avatar"><UserRound size={34} /></div>
         <div>

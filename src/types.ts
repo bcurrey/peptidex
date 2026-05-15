@@ -9,6 +9,11 @@ export type Category =
 
 export type DoseUnit = "mcg" | "mg" | "IU" | "units" | "mL" | "capsule" | "tablet";
 export type DoseStatus = "taken" | "skipped" | "missed" | "snoozed";
+export type DoseMethod = "SubQ" | "IM" | "IV" | "Oral" | "Nasal" | "Other";
+export type FrequencyType = "Daily" | "Set Days" | "Interval";
+export type DurationUnit = "days" | "weeks";
+export type CycleUnit = "days" | "weeks";
+export type DoseType = "Fixed Dose" | "Titration Protocol";
 export type MetricCategory = "Body" | "Wellness" | "Sleep" | "Recovery" | "Skin" | "Fitness" | "Side Effects" | "Labs" | "Custom";
 export type MetricInputType = "rating-5" | "rating-10" | "yes-no" | "numeric" | "text" | "photo";
 export type MetricFrequency = "Daily" | "Weekly" | "Monthly" | "As needed";
@@ -71,6 +76,41 @@ export interface Schedule {
   timesPerDay: number;
   preferredTimes: string[];
   notificationEnabled: boolean;
+  frequencyType?: FrequencyType;
+  intervalEvery?: number;
+}
+
+export interface VialTracking {
+  enabled: boolean;
+  label: string;
+  totalAmount: string;
+  unit: "mg" | "mcg" | "IU";
+  reconstitutionVolume: string;
+  volumeUnit: "mL";
+  startingSupply: string;
+  remainingSupply: string;
+  lowSupplyThreshold: string;
+}
+
+export interface CyclingRule {
+  enabled: boolean;
+  activeLength: number;
+  offLength: number;
+  unit: CycleUnit;
+  repeat: boolean;
+  cycleStartDate: string;
+}
+
+export interface TitrationPhase {
+  id: string;
+  name: string;
+  amount: string;
+  unit: "mcg" | "mg" | "IU";
+  frequency: FrequencyType;
+  duration: number;
+  durationUnit: DurationUnit;
+  startDate?: string;
+  notes?: string;
 }
 
 export interface ProtocolItem {
@@ -80,6 +120,13 @@ export interface ProtocolItem {
   doseAmount: string;
   doseUnit?: DoseUnit;
   instructions?: string;
+  method?: DoseMethod;
+  notes?: string;
+  doseType?: DoseType;
+  titrationPhases?: TitrationPhase[];
+  vialTracking?: VialTracking;
+  cycling?: CyclingRule;
+  syringeUnitsEnabled?: boolean;
 }
 
 export interface Protocol {
@@ -102,6 +149,8 @@ export interface ScheduledDose {
   doseAmount: string;
   doseUnit: DoseUnit;
   instructions?: string;
+  method?: DoseMethod;
+  phaseName?: string;
 }
 
 export interface DoseLog {
@@ -112,6 +161,11 @@ export interface DoseLog {
   takenAt?: string;
   takenLate: boolean;
   notes: string;
+  peptideId?: string;
+  amount?: string;
+  unit?: DoseUnit;
+  method?: DoseMethod;
+  injectionSite?: string;
 }
 
 export interface Achievement {
@@ -143,6 +197,8 @@ export interface MetricConfig {
   showOnDashboard: boolean;
   showInAnalytics: boolean;
   quickEntry: boolean;
+  favorite?: boolean;
+  order?: number;
 }
 
 export interface MetricEntry {
@@ -222,6 +278,14 @@ export interface RecoveryEntry {
   notes?: string;
 }
 
+export interface InjectionSite {
+  id: string;
+  name: string;
+  region: "abdomen" | "thigh" | "arm" | "glute" | "other";
+  lastUsedAt?: string;
+  notes?: string;
+}
+
 export interface DashboardWidget {
   id: string;
   type: DashboardWidgetType;
@@ -256,6 +320,7 @@ export interface AppState {
   protocolTemplates: ProtocolTemplate[];
   labResults: LabResult[];
   recoveryEntries: RecoveryEntry[];
+  injectionSites?: InjectionSite[];
   dashboardWidgets: DashboardWidget[];
   smartBuilder: SmartBuilderPrefs;
   onboardingComplete: boolean;

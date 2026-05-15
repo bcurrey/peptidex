@@ -19,7 +19,7 @@ const emptyPeptide: Peptide = {
   isCustom: true,
 };
 
-export function PeptidesScreen({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
+export function PeptidesScreen({ state, setState, onBack }: { state: AppState; setState: Dispatch<SetStateAction<AppState>>; onBack?: () => void }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<(typeof categories)[number]>("All");
   const [editing, setEditing] = useState<Peptide | null>(null);
@@ -52,7 +52,7 @@ export function PeptidesScreen({ state, setState }: { state: AppState; setState:
       <ScreenHeader
         eyebrow="Library"
         title="Peptides"
-        action={<Button variant="ghost" onClick={() => setEditing(emptyPeptide)} title="Add a custom peptide, pill, or supplement item to track."><Plus size={17} /> Add</Button>}
+        action={<div className="header-actions">{onBack && <Button variant="ghost" onClick={onBack}>Back</Button>}<Button variant="ghost" onClick={() => setEditing(emptyPeptide)} title="Add a custom peptide, pill, or supplement item to track."><Plus size={17} /> Add</Button></div>}
       />
       <div className="search-box">
         <Search size={18} />

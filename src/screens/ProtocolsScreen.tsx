@@ -1,12 +1,16 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { Bell, Plus } from "lucide-react";
 import { ProtocolCard } from "../components/ProtocolCard";
-import { Button, Card, Input, ScreenHeader, Select } from "../components/ui";
-import { calculateCompliance } from "../lib/calculations";
-import { AppState, DoseUnit, Protocol, ProtocolItem } from "../types";
+import { Button, Card, Input, ScreenHeader, Select, Textarea, Toggle } from "../components/ui";
+import { calculateCompliance, getCycleStatus, getCurrentTitrationPhase, vialMathForItem } from "../lib/calculations";
+import { AppState, DoseMethod, DoseType, DoseUnit, DurationUnit, FrequencyType, Protocol, ProtocolItem, TitrationPhase } from "../types";
 
 const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 const doseUnits: DoseUnit[] = ["mcg", "mg", "IU", "units", "mL", "capsule", "tablet"];
+const measuredDoseUnits: Array<"mcg" | "mg" | "IU"> = ["mcg", "mg", "IU"];
+const methods: DoseMethod[] = ["SubQ", "IM", "IV", "Oral", "Nasal", "Other"];
+const frequencies: FrequencyType[] = ["Daily", "Set Days", "Interval"];
+const durationUnits: DurationUnit[] = ["days", "weeks"];
 
 const toTimeParts = (time?: string) => {
   const [hourRaw = "8", minuteRaw = "00"] = (time || "08:00").split(":");
@@ -75,12 +79,16 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
       doseAmount: peptide.defaultDose,
       doseUnit: peptide.doseUnit,
       instructions: "With food",
+      method: "SubQ",
+      doseType: "Fixed Dose",
+      titrationPhases: [],
       schedule: {
         id: `schedule-${crypto.randomUUID()}`,
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
         timesPerDay: 1,
         preferredTimes: ["08:00"],
         notificationEnabled: true,
+        frequencyType: "Daily",
       },
     };
     setEditing({ ...editing, items: [...editing.items, item] });
@@ -90,6 +98,17 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
     if (!editing) return;
     setEditing({ ...editing, items: editing.items.map((current) => current.id === item.id ? item : current) });
   };
+
+  const newPhase = (index: number, item: ProtocolItem): TitrationPhase => ({
+    id: `phase-${crypto.randomUUID()}`,
+    name: `Step ${index + 1}`,
+    amount: item.doseAmount || "",
+    unit: (measuredDoseUnits.includes(item.doseUnit as "mcg" | "mg" | "IU") ? item.doseUnit : "mg") as "mcg" | "mg" | "IU",
+    frequency: item.schedule.frequencyType || "Daily",
+    duration: 7,
+    durationUnit: "days",
+    notes: "",
+  });
 
   return (
     <div className="screen">
@@ -199,6 +218,52 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
                     </Select>
                   </label>
                 </div>
+                <div className="protocol-dose-grid">
+                  <label className="field-label">
+                    <span>Method</span>
+                    <Select value={item.method || "SubQ"} onChange={(e) => updateItem({ ...item, method: e.target.value as DoseMethod })} title="User-selected route/method label for logs.">
+                      {methods.map((method) => <option key={method}>{method}</option>)}
+                    </Select>
+                  </label>
+                  <label className="field-label">
+                    <span>Dose type</span>
+                    <Select value={item.doseType || "Fixed Dose"} onChange={(e) => {
+                      const doseType = e.target.value as DoseType;
+                      updateItem({
+                        ...item,
+                        doseType,
+                        titrationPhases: doseType === "Titration Protocol" && !item.titrationPhases?.length ? [newPhase(0, item)] : item.titrationPhases,
+                      });
+                    }} title="Choose fixed dose tracking or user-entered titration steps.">
+                      <option>Fixed Dose</option>
+                      <option>Titration Protocol</option>
+                    </Select>
+                  </label>
+                </div>
+                <div className="protocol-dose-grid">
+                  <label className="field-label">
+                    <span>Frequency</span>
+                    <Select value={item.schedule.frequencyType || "Daily"} onChange={(e) => {
+                      const frequencyType = e.target.value as FrequencyType;
+                      updateItem({
+                        ...item,
+                        schedule: {
+                          ...item.schedule,
+                          frequencyType,
+                          daysOfWeek: frequencyType === "Daily" ? [0, 1, 2, 3, 4, 5, 6] : item.schedule.daysOfWeek,
+                        },
+                      });
+                    }} title="Choose how this item appears on the schedule.">
+                      {frequencies.map((frequency) => <option key={frequency}>{frequency}</option>)}
+                    </Select>
+                  </label>
+                  {item.schedule.frequencyType === "Interval" && (
+                    <label className="field-label">
+                      <span>Every X days</span>
+                      <Input type="number" min="1" value={item.schedule.intervalEvery || 2} onChange={(e) => updateItem({ ...item, schedule: { ...item.schedule, intervalEvery: Number(e.target.value) || 1 } })} />
+                    </label>
+                  )}
+                </div>
                 <div className="time-builder">
                   <label className="field-label">
                     <span>Dose time</span>
@@ -225,23 +290,33 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
                   <span>Instructions / context</span>
                   <Input value={item.instructions || ""} onChange={(e) => updateItem({ ...item, instructions: e.target.value })} placeholder="Example: With food" title="Optional user-entered context such as with food or before bed." />
                 </label>
-                <div className="week-row compact">
-                  {weekdays.map((day, index) => (
-                    <button
-                      key={`${day}-${index}`}
-                      className={item.schedule.daysOfWeek.includes(index) ? "done" : ""}
-                      title={`Toggle ${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][index]} for this schedule.`}
-                      onClick={() => {
-                        const days = item.schedule.daysOfWeek.includes(index)
-                          ? item.schedule.daysOfWeek.filter((d) => d !== index)
-                          : [...item.schedule.daysOfWeek, index].sort();
-                        updateItem({ ...item, schedule: { ...item.schedule, daysOfWeek: days } });
-                      }}
-                    >
-                      {day}
-                    </button>
-                  ))}
-                </div>
+                {item.schedule.frequencyType !== "Daily" && (
+                  <div className="week-row compact">
+                    {weekdays.map((day, index) => (
+                      <button
+                        key={`${day}-${index}`}
+                        className={item.schedule.daysOfWeek.includes(index) ? "done" : ""}
+                        title={`Toggle ${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][index]} for this schedule.`}
+                        onClick={() => {
+                          const days = item.schedule.daysOfWeek.includes(index)
+                            ? item.schedule.daysOfWeek.filter((d) => d !== index)
+                            : [...item.schedule.daysOfWeek, index].sort();
+                          updateItem({ ...item, schedule: { ...item.schedule, daysOfWeek: days } });
+                        }}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <label className="field-label">
+                  <span>Notes</span>
+                  <Textarea value={item.notes || ""} onChange={(e) => updateItem({ ...item, notes: e.target.value })} placeholder="Optional user-entered protocol notes" />
+                </label>
+                {item.doseType === "Titration Protocol" && (
+                  <TitrationEditor item={item} protocolStartDate={editing.cycleStartDate} updateItem={updateItem} newPhase={newPhase} />
+                )}
+                <AdvancedProtocolOptions item={item} updateItem={updateItem} protocolStartDate={editing.cycleStartDate} />
                 <label className="toggle-line" title="Turn reminder placeholder on or off for this schedule.">
                   <input
                     type="checkbox"
@@ -259,6 +334,153 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
             <Button onClick={saveProtocol} title="Save this protocol to local storage.">Save protocol</Button>
           </div>
         </Card>
+      )}
+    </div>
+  );
+}
+
+function TitrationEditor({
+  item,
+  protocolStartDate,
+  updateItem,
+  newPhase,
+}: {
+  item: ProtocolItem;
+  protocolStartDate: string;
+  updateItem: (item: ProtocolItem) => void;
+  newPhase: (index: number, item: ProtocolItem) => TitrationPhase;
+}) {
+  const phases = item.titrationPhases || [];
+  const currentPhase = getCurrentTitrationPhase(item, protocolStartDate);
+  const updatePhase = (phase: TitrationPhase) => updateItem({
+    ...item,
+    titrationPhases: phases.map((current) => current.id === phase.id ? phase : current),
+  });
+
+  return (
+    <div className="advanced-card">
+      <div className="section-title">
+        <div>
+          <h3>Titration steps</h3>
+          <span>Current: {currentPhase?.name || "Not started"}</span>
+        </div>
+        <Button variant="ghost" onClick={() => updateItem({ ...item, titrationPhases: [...phases, newPhase(phases.length, item)] })}><Plus size={14} /> Add Step</Button>
+      </div>
+      <div className="stack tight">
+        {phases.map((phase, index) => (
+          <div className="phase-row" key={phase.id}>
+            <div className="protocol-dose-grid">
+              <Input value={phase.name} onChange={(e) => updatePhase({ ...phase, name: e.target.value })} placeholder={`Step ${index + 1}`} />
+              <Select value={phase.frequency} onChange={(e) => updatePhase({ ...phase, frequency: e.target.value as FrequencyType })}>
+                {frequencies.map((frequency) => <option key={frequency}>{frequency}</option>)}
+              </Select>
+            </div>
+            <div className="protocol-dose-grid">
+              <Input value={phase.amount} onChange={(e) => updatePhase({ ...phase, amount: e.target.value })} placeholder="Amount" />
+              <Select value={phase.unit} onChange={(e) => updatePhase({ ...phase, unit: e.target.value as "mcg" | "mg" | "IU" })}>
+                {measuredDoseUnits.map((unit) => <option key={unit}>{unit}</option>)}
+              </Select>
+            </div>
+            <div className="protocol-dose-grid">
+              <Input type="number" min="1" value={phase.duration} onChange={(e) => updatePhase({ ...phase, duration: Number(e.target.value) || 1 })} placeholder="Duration" />
+              <Select value={phase.durationUnit} onChange={(e) => updatePhase({ ...phase, durationUnit: e.target.value as DurationUnit })}>
+                {durationUnits.map((unit) => <option key={unit}>{unit}</option>)}
+              </Select>
+            </div>
+            <Textarea value={phase.notes || ""} onChange={(e) => updatePhase({ ...phase, notes: e.target.value })} placeholder="Optional notes" />
+            <div className="row-actions">
+              <Button variant="ghost" onClick={() => updateItem({ ...item, titrationPhases: [...phases, { ...phase, id: `phase-${crypto.randomUUID()}`, name: `${phase.name} copy` }] })}>Duplicate</Button>
+              <Button variant="danger" onClick={() => updateItem({ ...item, titrationPhases: phases.filter((current) => current.id !== phase.id) })}>Delete</Button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="subtle">Steps are user-entered tracking phases, not recommendations.</p>
+    </div>
+  );
+}
+
+function AdvancedProtocolOptions({
+  item,
+  updateItem,
+  protocolStartDate,
+}: {
+  item: ProtocolItem;
+  updateItem: (item: ProtocolItem) => void;
+  protocolStartDate: string;
+}) {
+  const vial = item.vialTracking || {
+    enabled: false,
+    label: "",
+    totalAmount: "",
+    unit: "mg" as const,
+    reconstitutionVolume: "",
+    volumeUnit: "mL" as const,
+    startingSupply: "",
+    remainingSupply: "",
+    lowSupplyThreshold: "",
+  };
+  const cycling = item.cycling || {
+    enabled: false,
+    activeLength: 5,
+    offLength: 2,
+    unit: "days" as const,
+    repeat: true,
+    cycleStartDate: protocolStartDate,
+  };
+  const vialMath = vialMathForItem({ ...item, vialTracking: vial });
+  const cycle = getCycleStatus({ ...item, cycling });
+
+  return (
+    <div className="advanced-card">
+      <div className="advanced-toggle">
+        <span><strong>Track Vial</strong><small>Inventory math from user-entered values</small></span>
+        <Toggle checked={!!vial.enabled} onChange={(enabled) => updateItem({ ...item, vialTracking: { ...vial, enabled } })} label="Toggle vial tracking" />
+      </div>
+      {vial.enabled && (
+        <div className="advanced-fields">
+          <Input value={vial.label} onChange={(e) => updateItem({ ...item, vialTracking: { ...vial, label: e.target.value } })} placeholder="Vial name / label" />
+          <div className="protocol-dose-grid">
+            <Input value={vial.totalAmount} onChange={(e) => updateItem({ ...item, vialTracking: { ...vial, totalAmount: e.target.value } })} placeholder="Total amount" />
+            <Select value={vial.unit} onChange={(e) => updateItem({ ...item, vialTracking: { ...vial, unit: e.target.value as "mg" | "mcg" | "IU" } })}>
+              {measuredDoseUnits.map((unit) => <option key={unit}>{unit}</option>)}
+            </Select>
+          </div>
+          <div className="protocol-dose-grid">
+            <Input value={vial.reconstitutionVolume} onChange={(e) => updateItem({ ...item, vialTracking: { ...vial, reconstitutionVolume: e.target.value } })} placeholder="Liquid volume" />
+            <Input value={vial.lowSupplyThreshold} onChange={(e) => updateItem({ ...item, vialTracking: { ...vial, lowSupplyThreshold: e.target.value } })} placeholder="Low alert doses" />
+          </div>
+          <div className="protocol-dose-grid">
+            <Input value={vial.startingSupply} onChange={(e) => updateItem({ ...item, vialTracking: { ...vial, startingSupply: e.target.value } })} placeholder="Starting supply" />
+            <Input value={vial.remainingSupply} onChange={(e) => updateItem({ ...item, vialTracking: { ...vial, remainingSupply: e.target.value } })} placeholder="Current remaining" />
+          </div>
+          <p className="subtle">Concentration: {vialMath?.concentration || 0} {vial.unit}/mL - {vialMath?.dosesRemaining || 0} estimated doses left.</p>
+        </div>
+      )}
+
+      <div className="advanced-toggle">
+        <span><strong>On/Off Cycling</strong><small>Show active and off phases in the schedule</small></span>
+        <Toggle checked={!!cycling.enabled} onChange={(enabled) => updateItem({ ...item, cycling: { ...cycling, enabled } })} label="Toggle cycling" />
+      </div>
+      {cycling.enabled && (
+        <div className="advanced-fields">
+          <div className="protocol-dose-grid">
+            <Input type="number" min="1" value={cycling.activeLength} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, activeLength: Number(e.target.value) || 1 } })} placeholder="Active length" />
+            <Input type="number" min="0" value={cycling.offLength} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, offLength: Number(e.target.value) || 0 } })} placeholder="Off length" />
+          </div>
+          <div className="protocol-dose-grid">
+            <Select value={cycling.unit} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, unit: e.target.value as "days" | "weeks" } })}>
+              <option>days</option>
+              <option>weeks</option>
+            </Select>
+            <Input type="date" value={cycling.cycleStartDate} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, cycleStartDate: e.target.value } })} />
+          </div>
+          <label className="toggle-line">
+            <input type="checkbox" checked={cycling.repeat} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, repeat: e.target.checked } })} />
+            Repeat cycle
+          </label>
+          <p className="subtle">{cycle.label}{cycle.daysLeft !== null ? ` - ${cycle.daysLeft} days left in current phase` : ""}.</p>
+        </div>
       )}
     </div>
   );

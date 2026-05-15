@@ -4,18 +4,18 @@ import { BottomNav } from "./components/BottomNav";
 import { NextDoseBar } from "./components/NextDoseBar";
 import { AnalyticsScreen } from "./screens/AnalyticsScreen";
 import { HomeScreen } from "./screens/HomeScreen";
-import { PeptidesScreen } from "./screens/PeptidesScreen";
-import { ProfileScreen } from "./screens/ProfileScreen";
+import { MoreScreen } from "./screens/MoreScreen";
 import { ProtocolsScreen } from "./screens/ProtocolsScreen";
+import { TrackScreen } from "./screens/TrackScreen";
 import { getPeptide, generateScheduledDoses } from "./lib/calculations";
 import { loadState, resetState, saveState } from "./lib/storage";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "./types";
 import { Button } from "./components/ui";
 
-export type Tab = "home" | "peptides" | "protocols" | "analytics" | "profile";
+export type Tab = "dashboard" | "protocols" | "track" | "insights" | "more";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [state, setState] = useState<AppState>(() => loadState());
 
   useEffect(() => saveState(state), [state]);
@@ -75,14 +75,14 @@ export default function App() {
   };
 
   const viewNextDose = () => {
-    setActiveTab("home");
+    setActiveTab("dashboard");
     const scrollToToday = () => {
       const target = document.getElementById("todays-doses");
       if (!target) return;
       const top = target.getBoundingClientRect().top + window.scrollY - 92;
       window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     };
-    window.setTimeout(scrollToToday, activeTab === "home" ? 0 : 140);
+    window.setTimeout(scrollToToday, activeTab === "dashboard" ? 0 : 140);
     window.setTimeout(scrollToToday, 320);
   };
 
@@ -95,11 +95,11 @@ export default function App() {
       </Button>
 
       <main>
-        {activeTab === "home" && <HomeScreen {...screenProps} />}
-        {activeTab === "peptides" && <PeptidesScreen state={state} setState={setState} />}
+        {activeTab === "dashboard" && <HomeScreen {...screenProps} />}
         {activeTab === "protocols" && <ProtocolsScreen state={state} setState={setState} />}
-        {activeTab === "analytics" && <AnalyticsScreen state={state} setState={setState} scheduledDoses={scheduledDoses} />}
-        {activeTab === "profile" && <ProfileScreen state={state} setState={setState} />}
+        {activeTab === "track" && <TrackScreen state={state} setState={setState} scheduledDoses={scheduledDoses} logDose={logDose} />}
+        {activeTab === "insights" && <AnalyticsScreen state={state} setState={setState} scheduledDoses={scheduledDoses} />}
+        {activeTab === "more" && <MoreScreen state={state} setState={setState} />}
       </main>
 
       <NextDoseBar dose={nextDose} peptide={nextPeptide} onView={viewNextDose} />

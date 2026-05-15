@@ -16,18 +16,48 @@ const normalizeState = (state: Partial<AppState>): AppState => {
     ...seeded.peptides.filter((peptide) => !peptideIds.has(peptide.id)),
   ];
   const metricIds = new Set((state.metricConfigs || []).map((metric) => metric.id));
+  const normalizeProtocolItem = (item: any) => ({
+    ...item,
+    method: item.method || "SubQ",
+    doseType: item.doseType || "Fixed Dose",
+    titrationPhases: item.titrationPhases || [],
+    vialTracking: item.vialTracking || {
+      enabled: false,
+      label: "",
+      totalAmount: "",
+      unit: "mg",
+      reconstitutionVolume: "",
+      volumeUnit: "mL",
+      startingSupply: "",
+      remainingSupply: "",
+      lowSupplyThreshold: "",
+    },
+    cycling: item.cycling || {
+      enabled: false,
+      activeLength: 5,
+      offLength: 2,
+      unit: "days",
+      repeat: true,
+      cycleStartDate: new Date().toISOString().slice(0, 10),
+    },
+  });
+
   return {
     ...seeded,
     ...state,
     user: state.user || seeded.user,
     peptides: mergedPeptides,
-    protocols: (state.protocols || seeded.protocols).map((protocol) => ({ ...protocol, noEndDate: protocol.noEndDate ?? false })),
+    protocols: (state.protocols || seeded.protocols).map((protocol) => ({
+      ...protocol,
+      noEndDate: protocol.noEndDate ?? false,
+      items: protocol.items.map(normalizeProtocolItem),
+    })),
     doseLogs: state.doseLogs || seeded.doseLogs,
     bodyMetrics: state.bodyMetrics || seeded.bodyMetrics,
     metricConfigs: [
       ...(state.metricConfigs || []),
       ...seeded.metricConfigs.filter((metric) => !metricIds.has(metric.id)),
-    ],
+    ].map((metric, index) => ({ ...metric, favorite: metric.favorite ?? metric.quickEntry, order: metric.order ?? index })),
     metricEntries: state.metricEntries || seeded.metricEntries,
     journalEntries: state.journalEntries || seeded.journalEntries,
     progressPhotos: state.progressPhotos || seeded.progressPhotos,
@@ -35,6 +65,7 @@ const normalizeState = (state: Partial<AppState>): AppState => {
     protocolTemplates: state.protocolTemplates || seeded.protocolTemplates,
     labResults: state.labResults || seeded.labResults,
     recoveryEntries: state.recoveryEntries || seeded.recoveryEntries,
+    injectionSites: state.injectionSites || seeded.injectionSites,
     dashboardWidgets: state.dashboardWidgets || seeded.dashboardWidgets,
     smartBuilder: state.smartBuilder || seeded.smartBuilder,
     onboardingComplete: state.onboardingComplete ?? seeded.onboardingComplete,

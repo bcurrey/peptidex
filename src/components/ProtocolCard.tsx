@@ -1,5 +1,5 @@
 import { CalendarDays, Pause, Play } from "lucide-react";
-import { daysBetween } from "../lib/calculations";
+import { daysBetween, getCycleStatus, getCurrentTitrationPhase, vialMathForItem } from "../lib/calculations";
 import { Peptide, Protocol } from "../types";
 import { useLongPress } from "../hooks/useLongPress";
 import { Card } from "./ui";
@@ -24,6 +24,10 @@ export function ProtocolCard({
   const startLabel = new Date(`${protocol.cycleStartDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" });
   const endLabel = protocol.noEndDate ? "No end date" : new Date(`${protocol.cycleEndDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" });
   const dateRange = `${startLabel} -> ${endLabel}`;
+  const currentItem = protocol.items[0];
+  const currentPhase = currentItem ? getCurrentTitrationPhase(currentItem, protocol.cycleStartDate) : null;
+  const cycle = currentItem ? getCycleStatus(currentItem) : null;
+  const vial = currentItem ? vialMathForItem(currentItem) : null;
   const longPress = useLongPress(() => {
     if (onDelete && window.confirm(`Delete "${protocol.name}"? This removes the saved protocol and its generated dose logs.`)) onDelete();
   });
@@ -45,7 +49,14 @@ export function ProtocolCard({
       </div>
       <div className="protocol-meta">
         <span>{adherence}% adherence</span>
+        {currentPhase && <span>{currentPhase.name} - {currentPhase.amount} {currentPhase.unit}</span>}
       </div>
+      {(cycle?.label || vial) && (
+        <div className="protocol-meta secondary">
+          {cycle?.label && <span>{cycle.label}{cycle.daysLeft !== null ? ` - ${cycle.daysLeft} days left` : ""}</span>}
+          {vial && <span className={vial.lowSupply ? "warning-text" : ""}>{vial.dosesRemaining} doses left</span>}
+        </div>
+      )}
       <div className="chip-row">
         {protocol.items.map((item) => {
           const peptide = peptides.find((p) => p.id === item.peptideId);

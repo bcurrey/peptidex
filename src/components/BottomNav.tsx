@@ -1,12 +1,12 @@
-import { Activity, BarChart3, Home, User, Workflow } from "lucide-react";
+import { BarChart3, Gauge, ListPlus, MoreHorizontal, Workflow } from "lucide-react";
 import { Tab } from "../App";
 
 const items = [
-  { id: "home", label: "Home", icon: Home, tip: "Dashboard with today's plan, streaks, and next dose." },
-  { id: "peptides", label: "Peptides", icon: Activity, tip: "Browse, search, and edit peptide tracking profiles." },
+  { id: "dashboard", label: "Dashboard", icon: Gauge, tip: "Today overview, active protocols, and next dose." },
   { id: "protocols", label: "Protocols", icon: Workflow, tip: "Create and manage protocol schedules and templates." },
-  { id: "analytics", label: "Analytics", icon: BarChart3, tip: "View metrics, charts, insights, inventory, labs, and exports." },
-  { id: "profile", label: "Profile", icon: User, tip: "Edit profile, goals, reminders, privacy, and dashboard widgets." },
+  { id: "track", label: "Track", icon: ListPlus, tip: "Log doses and metrics quickly." },
+  { id: "insights", label: "Insights", icon: BarChart3, tip: "View metrics, charts, insights, inventory, labs, and exports." },
+  { id: "more", label: "More", icon: MoreHorizontal, tip: "Tools, settings, peptide library, and reports." },
 ] as const;
 
 export function BottomNav({ active, onChange }: { active: Tab; onChange: (tab: Tab) => void }) {

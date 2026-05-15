@@ -496,6 +496,12 @@ export const seedState: AppState = {
   recoveryEntries: [
     { id: "recovery-1", date: isoDate(0), injuryType: "Shoulder strain", painLocation: "Right shoulder", bodyArea: "Shoulder", recoveryPercent: 72, mobility: 7, soreness: 2, reinjuryEvent: false, notes: "Mobility improving." },
   ],
+  injectionSites: [
+    { id: "site-abdomen-left", name: "Left abdomen", region: "abdomen", lastUsedAt: isoDate(-3) },
+    { id: "site-abdomen-right", name: "Right abdomen", region: "abdomen", lastUsedAt: isoDate(-1) },
+    { id: "site-thigh-left", name: "Left thigh", region: "thigh" },
+    { id: "site-thigh-right", name: "Right thigh", region: "thigh" },
+  ],
   dashboardWidgets: [
     { id: "widget-next", type: "next-dose", title: "Next dose", visible: true, size: "large", pinned: true, order: 1 },
     { id: "widget-streak", type: "streak", title: "Streak", visible: true, size: "small", pinned: true, order: 2 },

@@ -12,6 +12,37 @@ export const daysBetween = (start: string, end: string) => {
 
 export const getPeptide = (peptides: Peptide[], id: string) => peptides.find((p) => p.id === id);
 
+const unitsToDays = (value: number, unit = "days") => value * (unit === "weeks" ? 7 : 1);
+
+export const getCurrentTitrationPhase = (item: Protocol["items"][number], protocolStartDate: string, date = new Date()) => {
+  if (item.doseType !== "Titration Protocol" || !item.titrationPhases?.length) return null;
+  let cursor = new Date(`${item.titrationPhases[0].startDate || protocolStartDate}T00:00:00`);
+  const target = new Date(`${toDateKey(date)}T00:00:00`);
+  for (const phase of item.titrationPhases) {
+    const phaseStart = phase.startDate ? new Date(`${phase.startDate}T00:00:00`) : cursor;
+    const phaseEnd = new Date(phaseStart);
+    phaseEnd.setDate(phaseEnd.getDate() + unitsToDays(phase.duration || 1, phase.durationUnit));
+    if (target >= phaseStart && target < phaseEnd) return phase;
+    cursor = phaseEnd;
+  }
+  return item.titrationPhases[item.titrationPhases.length - 1];
+};
+
+export const getCycleStatus = (item: Protocol["items"][number], date = new Date()) => {
+  const cycling = item.cycling;
+  if (!cycling?.enabled) return { isActive: true, label: "Active", daysLeft: null as number | null };
+  const activeDays = unitsToDays(cycling.activeLength || 1, cycling.unit);
+  const offDays = unitsToDays(cycling.offLength || 0, cycling.unit);
+  const cycleDays = Math.max(1, activeDays + offDays);
+  const start = new Date(`${cycling.cycleStartDate}T00:00:00`);
+  const current = new Date(`${toDateKey(date)}T00:00:00`);
+  const elapsed = Math.max(0, Math.floor((current.getTime() - start.getTime()) / dayMs));
+  const position = cycling.repeat ? elapsed % cycleDays : elapsed;
+  const isActive = position < activeDays;
+  const daysLeft = isActive ? activeDays - position : cycleDays - position;
+  return { isActive, label: isActive ? "Active phase" : "Off phase", daysLeft };
+};
+
 export const generateScheduledDoses = (protocols: Protocol[], peptides: Peptide[], rangeStart: Date, rangeEnd: Date) => {
   const doses: ScheduledDose[] = [];
   protocols
@@ -23,9 +54,17 @@ export const generateScheduledDoses = (protocols: Protocol[], peptides: Peptide[
       const stop = new Date(Math.min(end.getTime(), rangeEnd.getTime()));
       while (cursor <= stop) {
         protocol.items.forEach((item) => {
+          const cycle = getCycleStatus(item, cursor);
+          if (!cycle.isActive) return;
+          if (item.schedule.frequencyType === "Interval") {
+            const elapsed = Math.floor((new Date(`${toDateKey(cursor)}T00:00:00`).getTime() - start.getTime()) / dayMs);
+            const interval = Math.max(1, item.schedule.intervalEvery || 1);
+            if (elapsed % interval !== 0) return;
+          }
           if (!item.schedule.daysOfWeek.includes(cursor.getDay())) return;
           const peptide = getPeptide(peptides, item.peptideId);
           if (!peptide) return;
+          const phase = getCurrentTitrationPhase(item, protocol.cycleStartDate, cursor);
           item.schedule.preferredTimes.forEach((time) => {
             const scheduledAt = `${toDateKey(cursor)}T${time}:00`;
             doses.push({
@@ -34,9 +73,11 @@ export const generateScheduledDoses = (protocols: Protocol[], peptides: Peptide[
               protocolItemId: item.id,
               peptideId: item.peptideId,
               scheduledAt,
-              doseAmount: item.doseAmount,
-              doseUnit: item.doseUnit || peptide.doseUnit,
+              doseAmount: phase?.amount || item.doseAmount,
+              doseUnit: phase?.unit || item.doseUnit || peptide.doseUnit,
               instructions: item.instructions,
+              method: item.method,
+              phaseName: phase?.name,
             });
           });
         });
@@ -44,6 +85,25 @@ export const generateScheduledDoses = (protocols: Protocol[], peptides: Peptide[
       }
     });
   return doses.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+};
+
+export const vialMathForItem = (item: Protocol["items"][number]) => {
+  const vial = item.vialTracking;
+  if (!vial?.enabled) return null;
+  const total = Number(vial.totalAmount || 0);
+  const volume = Number(vial.reconstitutionVolume || 0);
+  const remaining = Number(vial.remainingSupply || vial.startingSupply || vial.totalAmount || 0);
+  const plannedDose = Number(item.doseAmount || 0);
+  const concentration = volume ? total / volume : 0;
+  const dosesRemaining = plannedDose ? Math.floor(remaining / plannedDose) : 0;
+  const lowThreshold = Number(vial.lowSupplyThreshold || 0);
+  return {
+    concentration: Number(concentration.toFixed(2)),
+    remaining,
+    dosesRemaining,
+    lowSupply: lowThreshold > 0 && dosesRemaining <= lowThreshold,
+    daysLeft: dosesRemaining,
+  };
 };
 
 export const getLogForDose = (logs: DoseLog[], doseId: string) => logs.find((log) => log.scheduledDoseId === doseId);
@@ -141,22 +201,20 @@ export const generateInsights = (state: AppState) => {
     return log.status !== "taken" && (day === 0 || day === 6);
   }).length;
 
-  if (weightTrend && stats.compliance >= 90) {
-    insights.push(`Weight changed ${Math.abs(weightTrend.change)} lb during periods of >90% adherence.`);
-  }
+  if (weightTrend) insights.push(`Weight entries changed ${Math.abs(weightTrend.change)} lb across the selected logged period.`);
   if (moodTrend && sleepTrend) {
-    insights.push("Mood scores trend higher on weeks with better sleep data.");
+    insights.push("Mood and sleep both have enough entries to compare trends.");
   } else if (moodTrend) {
     insights.push(`Mood is trending ${moodTrend.change >= 0 ? "up" : "down"} across ${moodTrend.count} logs.`);
   }
   if (energyTrend) {
-    insights.push("Energy scores increased after consistent NAD+ tracking in the sample data.");
+    insights.push(`Energy entries changed ${Math.abs(energyTrend.change)} points across the selected logged period.`);
   }
-  insights.push("Evening doses correlate with improved sleep quality once enough sleep logs exist.");
+  insights.push("No trend yet for some modules - log more data to compare them.");
   if (missedWeekend > 0) {
     insights.push("You tend to miss doses more often on weekends.");
   } else {
-    insights.push("Weekend adherence is holding steady in the current logs.");
+    insights.push("Weekend dose logs are currently consistent with weekday logs.");
   }
   return insights;
 };
@@ -227,12 +285,12 @@ export const changeDetection = (state: AppState) => {
     return metric?.category === "Side Effects" && Number(entry.value) > 4;
   }).length;
   const cards = [];
-  if (weight && Math.abs(weight.change) < 0.4) cards.push("Weight plateau detected.");
-  if (sleep && sleep.change < 0) cards.push("Sleep worsened after protocol adjustment.");
-  if (mood && mood.change > 0) cards.push("Mood improved after adherence increased.");
-  if (getAppStats(state).compliance > 90) cards.push("Increased adherence detected this cycle.");
+  if (weight && Math.abs(weight.change) < 0.4) cards.push("Weight entries are mostly flat in the selected logs.");
+  if (sleep && sleep.change < 0) cards.push("Sleep entries decreased across the selected logged period.");
+  if (mood && mood.change > 0) cards.push("Mood entries increased across the selected logged period.");
+  if (getAppStats(state).compliance > 90) cards.push("Adherence is above 90% for the current logs.");
   if (sideEffects > 1) cards.push("Side effects increased. Keep tracking symptoms and notes.");
-  return cards.length ? cards : ["No major negative changes detected from current logs."];
+  return cards.length ? cards : ["No trend yet - log more data to compare changes."];
 };
 
 export const exportJson = (state: AppState) => JSON.stringify(state, null, 2);
