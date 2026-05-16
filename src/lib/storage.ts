@@ -1,5 +1,6 @@
 import { AppState } from "../types";
 import { seedHistoricalLogs, seedState } from "../data/seed";
+import { localDateInputValue } from "./dates";
 
 const STORAGE_KEY = "peptidex-state-v1";
 
@@ -38,7 +39,7 @@ const normalizeState = (state: Partial<AppState>): AppState => {
       offLength: 2,
       unit: "days",
       repeat: true,
-      cycleStartDate: new Date().toISOString().slice(0, 10),
+      cycleStartDate: localDateInputValue(),
     },
   });
 

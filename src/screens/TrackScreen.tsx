@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Activity, Camera, Droplets, HeartPulse, ListPlus, Moon, NotebookPen, Plus, Scale, Smile, Syringe, Zap } from "lucide-react";
 import { AppState, DoseLog, DoseMethod, DoseStatus, DoseUnit, MetricConfig, MetricEntry, ScheduledDose } from "../types";
 import { getLogForDose, getPeptide, toDateKey, vialMathForItem } from "../lib/calculations";
+import { localDateInputValue, localDateTime, localTimeInputValue } from "../lib/dates";
 import { Button, Card, Input, ScreenHeader, Select, Textarea } from "../components/ui";
 
 const metricIcons = [Scale, Moon, Smile, Zap, Activity, Droplets, Syringe, HeartPulse, Camera, NotebookPen];
@@ -118,7 +119,7 @@ function MetricDetail({ metric, state, setState, onClose }: { metric: MetricConf
         <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder={metric.unit || "Value"} />
         <Button onClick={() => {
           if (!value) return;
-          const entry: MetricEntry = { id: `metric-entry-${crypto.randomUUID()}`, metricId: metric.id, date: new Date().toISOString(), value };
+          const entry: MetricEntry = { id: `metric-entry-${crypto.randomUUID()}`, metricId: metric.id, date: localDateTime(), value };
           setState((current) => ({ ...current, metricEntries: [entry, ...current.metricEntries] }));
           setValue("");
         }}>Log</Button>
@@ -136,8 +137,8 @@ function LogDoseForm({ state, setState, onClose }: { state: AppState; setState: 
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState<DoseUnit>("mg");
   const [method, setMethod] = useState<DoseMethod>("SubQ");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
+  const [date, setDate] = useState(localDateInputValue());
+  const [time, setTime] = useState(localTimeInputValue());
   const [site, setSite] = useState("");
   const [notes, setNotes] = useState("");
   const itemWithVial = state.protocols.flatMap((protocol) => protocol.items).find((item) => item.peptideId === peptideId && item.vialTracking?.enabled);
@@ -178,11 +179,11 @@ function LogDoseForm({ state, setState, onClose }: { state: AppState; setState: 
       </div>
       <div className="protocol-dose-grid">
         <label className="field-label">
-          <span>Date <button type="button" className="inline-link" onClick={() => setDate(new Date().toISOString().slice(0, 10))}>Today</button></span>
+          <span>Date <button type="button" className="inline-link" onClick={() => setDate(localDateInputValue())}>Today</button></span>
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </label>
         <label className="field-label">
-          <span>Time <button type="button" className="inline-link" onClick={() => setTime(new Date().toTimeString().slice(0, 5))}>Now</button></span>
+          <span>Time <button type="button" className="inline-link" onClick={() => setTime(localTimeInputValue())}>Now</button></span>
           <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
         </label>
       </div>

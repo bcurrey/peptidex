@@ -1,10 +1,11 @@
 import { AppState, DoseLog } from "../types";
+import { localDateKey } from "../lib/dates";
 
 const today = new Date();
 const isoDate = (offset: number) => {
   const date = new Date(today);
   date.setDate(today.getDate() + offset);
-  return date.toISOString().slice(0, 10);
+  return localDateKey(date);
 };
 
 export const seedState: AppState = {

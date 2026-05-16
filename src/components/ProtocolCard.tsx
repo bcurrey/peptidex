@@ -1,5 +1,6 @@
 import { CalendarDays, Pause, Play } from "lucide-react";
 import { daysBetween, getCycleStatus, getCurrentTitrationPhase, vialMathForItem } from "../lib/calculations";
+import { localDateKey, parseLocalDate } from "../lib/dates";
 import { Peptide, Protocol } from "../types";
 import { useLongPress } from "../hooks/useLongPress";
 import { Card } from "./ui";
@@ -17,12 +18,12 @@ export function ProtocolCard({
   onClick: () => void;
   onDelete?: () => void;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateKey();
   const daysLeft = protocol.noEndDate ? null : daysBetween(today, protocol.cycleEndDate);
   const currentWeek = Math.max(1, Math.ceil(daysBetween(protocol.cycleStartDate, today) / 7));
   const totalWeeks = protocol.noEndDate ? null : Math.max(1, Math.ceil(daysBetween(protocol.cycleStartDate, protocol.cycleEndDate) / 7));
-  const startLabel = new Date(`${protocol.cycleStartDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" });
-  const endLabel = protocol.noEndDate ? "No end date" : new Date(`${protocol.cycleEndDate}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" });
+  const startLabel = parseLocalDate(protocol.cycleStartDate).toLocaleDateString([], { month: "short", day: "numeric" });
+  const endLabel = protocol.noEndDate ? "No end date" : parseLocalDate(protocol.cycleEndDate).toLocaleDateString([], { month: "short", day: "numeric" });
   const dateRange = `${startLabel} -> ${endLabel}`;
   const currentItem = protocol.items[0];
   const currentPhase = currentItem ? getCurrentTitrationPhase(currentItem, protocol.cycleStartDate) : null;

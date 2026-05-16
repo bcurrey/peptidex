@@ -1,5 +1,6 @@
 import { Check, SkipForward } from "lucide-react";
 import { statusForDose } from "../lib/calculations";
+import { dateTimeForInput, localDateTime } from "../lib/dates";
 import { DoseLog, DoseStatus, Peptide, ScheduledDose } from "../types";
 import { Button, Card, Input } from "./ui";
 
@@ -23,7 +24,7 @@ export function DoseCard({
   const status = log?.status || (computedStatus === "snoozed" ? "upcoming" : computedStatus);
   const isTaken = status === "taken";
   const isMissed = status === "missed";
-  const localTakenAt = log?.takenAt ? log.takenAt.slice(0, 16) : "";
+  const localTakenAt = log?.takenAt ? dateTimeForInput(log.takenAt) : "";
   return (
     <Card className={`dose-card ${status || ""}`}>
       <div className="dose-main">
@@ -51,7 +52,11 @@ export function DoseCard({
           <Input
             type="datetime-local"
             value={localTakenAt}
-            onChange={(event) => onUpdateLog({ ...log, takenAt: new Date(event.target.value).toISOString(), loggedAt: new Date(event.target.value).toISOString() })}
+            onChange={(event) => {
+              if (!event.target.value) return;
+              const nextTime = localDateTime(new Date(event.target.value));
+              onUpdateLog({ ...log, takenAt: nextTime, loggedAt: nextTime });
+            }}
             aria-label="Edit timestamp"
             title="Edit the timestamp for this log."
           />

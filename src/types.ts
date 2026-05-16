@@ -77,7 +77,7 @@ export interface Schedule {
   preferredTimes: string[];
   notificationEnabled: boolean;
   frequencyType?: FrequencyType;
-  intervalEvery?: number;
+  intervalEvery?: number | "";
 }
 
 export interface VialTracking {
@@ -94,8 +94,8 @@ export interface VialTracking {
 
 export interface CyclingRule {
   enabled: boolean;
-  activeLength: number;
-  offLength: number;
+  activeLength: number | "";
+  offLength: number | "";
   unit: CycleUnit;
   repeat: boolean;
   cycleStartDate: string;
@@ -107,7 +107,7 @@ export interface TitrationPhase {
   amount: string;
   unit: "mcg" | "mg" | "IU";
   frequency: FrequencyType;
-  duration: number;
+  duration: number | "";
   durationUnit: DurationUnit;
   startDate?: string;
   notes?: string;

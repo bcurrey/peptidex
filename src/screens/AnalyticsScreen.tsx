@@ -17,6 +17,7 @@ import {
   movingAverage,
   timeWindow,
 } from "../lib/calculations";
+import { localDateKey, localDateTime } from "../lib/dates";
 import { AppState, ChartRange, CheckInMode, MetricConfig, MetricEntry, MetricInputType, ScheduledDose, TimelineFilter } from "../types";
 
 const modules = ["Weight", "Body measurements", "Mood", "Energy", "Sleep", "Skin", "Pain/recovery", "Side effects", "Libido", "Workouts", "Photos", "Labs", "Custom metric"];
@@ -71,7 +72,7 @@ export function AnalyticsScreen({
     const entry: MetricEntry = {
       id: `metric-entry-${crypto.randomUUID()}`,
       metricId: metric.id,
-      date: new Date().toISOString(),
+      date: localDateTime(),
       value: parsedValue,
     };
     setState((current) => ({ ...current, metricEntries: [entry, ...current.metricEntries] }));
@@ -82,7 +83,7 @@ export function AnalyticsScreen({
     setState((current) => ({
       ...current,
       journalEntries: [
-        { id: `journal-${crypto.randomUUID()}`, date: new Date().toISOString(), type: "journal", title: "Freeform note", body: journalText },
+        { id: `journal-${crypto.randomUUID()}`, date: localDateTime(), type: "journal", title: "Freeform note", body: journalText },
         ...current.journalEntries,
       ],
     }));
@@ -396,7 +397,7 @@ function CalendarGrid({ state }: { state: AppState }) {
   const days = Array.from({ length: 35 }, (_, index) => {
     const date = new Date();
     date.setDate(date.getDate() - (34 - index));
-    const key = date.toISOString().slice(0, 10);
+    const key = localDateKey(date);
     const logs = state.doseLogs.filter((log) => log.loggedAt.startsWith(key));
     const metricCount = state.metricEntries.filter((entry) => entry.date.startsWith(key)).length;
     const status = logs.some((log) => log.status === "missed") ? "missed" : logs.length && logs.every((log) => log.status === "taken") ? "complete" : logs.length || metricCount ? "partial" : "";

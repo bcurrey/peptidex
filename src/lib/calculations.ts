@@ -1,12 +1,13 @@
 import { AppState, DoseLog, InventoryItem, Peptide, Protocol, ScheduledDose } from "../types";
+import { addLocalDays, endOfLocalDay, localDateKey, parseLocalDate, startOfLocalDay } from "./dates";
 
 const dayMs = 24 * 60 * 60 * 1000;
 
-export const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
+export const toDateKey = localDateKey;
 
 export const daysBetween = (start: string, end: string) => {
-  const a = new Date(`${start}T00:00:00`);
-  const b = new Date(`${end}T00:00:00`);
+  const a = parseLocalDate(start);
+  const b = parseLocalDate(end);
   return Math.max(0, Math.ceil((b.getTime() - a.getTime()) / dayMs));
 };
 
@@ -16,12 +17,12 @@ const unitsToDays = (value: number, unit = "days") => value * (unit === "weeks" 
 
 export const getCurrentTitrationPhase = (item: Protocol["items"][number], protocolStartDate: string, date = new Date()) => {
   if (item.doseType !== "Titration Protocol" || !item.titrationPhases?.length) return null;
-  let cursor = new Date(`${item.titrationPhases[0].startDate || protocolStartDate}T00:00:00`);
-  const target = new Date(`${toDateKey(date)}T00:00:00`);
+  let cursor = parseLocalDate(item.titrationPhases[0].startDate || protocolStartDate);
+  const target = startOfLocalDay(date);
   for (const phase of item.titrationPhases) {
-    const phaseStart = phase.startDate ? new Date(`${phase.startDate}T00:00:00`) : cursor;
+    const phaseStart = phase.startDate ? parseLocalDate(phase.startDate) : cursor;
     const phaseEnd = new Date(phaseStart);
-    phaseEnd.setDate(phaseEnd.getDate() + unitsToDays(phase.duration || 1, phase.durationUnit));
+    phaseEnd.setDate(phaseEnd.getDate() + unitsToDays(Number(phase.duration) || 1, phase.durationUnit));
     if (target >= phaseStart && target < phaseEnd) return phase;
     cursor = phaseEnd;
   }
@@ -31,11 +32,11 @@ export const getCurrentTitrationPhase = (item: Protocol["items"][number], protoc
 export const getCycleStatus = (item: Protocol["items"][number], date = new Date()) => {
   const cycling = item.cycling;
   if (!cycling?.enabled) return { isActive: true, label: "Active", daysLeft: null as number | null };
-  const activeDays = unitsToDays(cycling.activeLength || 1, cycling.unit);
-  const offDays = unitsToDays(cycling.offLength || 0, cycling.unit);
+  const activeDays = unitsToDays(Number(cycling.activeLength) || 1, cycling.unit);
+  const offDays = unitsToDays(Number(cycling.offLength) || 0, cycling.unit);
   const cycleDays = Math.max(1, activeDays + offDays);
-  const start = new Date(`${cycling.cycleStartDate}T00:00:00`);
-  const current = new Date(`${toDateKey(date)}T00:00:00`);
+  const start = parseLocalDate(cycling.cycleStartDate);
+  const current = startOfLocalDay(date);
   const elapsed = Math.max(0, Math.floor((current.getTime() - start.getTime()) / dayMs));
   const position = cycling.repeat ? elapsed % cycleDays : elapsed;
   const isActive = position < activeDays;
@@ -48,8 +49,8 @@ export const generateScheduledDoses = (protocols: Protocol[], peptides: Peptide[
   protocols
     .filter((protocol) => !protocol.paused && !protocol.completed)
     .forEach((protocol) => {
-      const start = new Date(`${protocol.cycleStartDate}T00:00:00`);
-      const end = protocol.noEndDate ? rangeEnd : new Date(`${protocol.cycleEndDate}T23:59:59`);
+      const start = parseLocalDate(protocol.cycleStartDate);
+      const end = protocol.noEndDate ? rangeEnd : endOfLocalDay(parseLocalDate(protocol.cycleEndDate));
       const cursor = new Date(Math.max(start.getTime(), rangeStart.getTime()));
       const stop = new Date(Math.min(end.getTime(), rangeEnd.getTime()));
       while (cursor <= stop) {
@@ -57,8 +58,8 @@ export const generateScheduledDoses = (protocols: Protocol[], peptides: Peptide[
           const cycle = getCycleStatus(item, cursor);
           if (!cycle.isActive) return;
           if (item.schedule.frequencyType === "Interval") {
-            const elapsed = Math.floor((new Date(`${toDateKey(cursor)}T00:00:00`).getTime() - start.getTime()) / dayMs);
-            const interval = Math.max(1, item.schedule.intervalEvery || 1);
+            const elapsed = Math.floor((startOfLocalDay(cursor).getTime() - start.getTime()) / dayMs);
+            const interval = Math.max(1, Number(item.schedule.intervalEvery) || 1);
             if (elapsed % interval !== 0) return;
           }
           if (!item.schedule.daysOfWeek.includes(cursor.getDay())) return;
@@ -121,7 +122,7 @@ export const calculateCompliance = (logs: DoseLog[]) => {
 };
 
 export const calculateCurrentStreak = (logs: DoseLog[]) => {
-  const takenDays = new Set(logs.filter((log) => log.status === "taken").map((log) => log.loggedAt.slice(0, 10)));
+  const takenDays = new Set(logs.filter((log) => log.status === "taken").map((log) => toDateKey(new Date(log.loggedAt))));
   let streak = 0;
   const cursor = new Date();
   while (takenDays.has(toDateKey(cursor))) {
@@ -132,7 +133,7 @@ export const calculateCurrentStreak = (logs: DoseLog[]) => {
 };
 
 export const calculateBestStreak = (logs: DoseLog[]) => {
-  const days = Array.from(new Set(logs.filter((log) => log.status === "taken").map((log) => log.loggedAt.slice(0, 10)))).sort();
+  const days = Array.from(new Set(logs.filter((log) => log.status === "taken").map((log) => toDateKey(new Date(log.loggedAt))))).sort();
   let best = 0;
   let current = 0;
   let previous = "";
@@ -265,13 +266,13 @@ export const inventoryMath = (item: InventoryItem, plannedDoseMg = 2) => {
   const remainingMg = concentration * item.remainingVolumeMl;
   const dosesRemaining = plannedDoseMg ? Math.floor(remainingMg / plannedDoseMg) : 0;
   const refillDate = new Date();
-  refillDate.setDate(refillDate.getDate() + Math.max(1, dosesRemaining));
+  const projectedRefillDate = addLocalDays(refillDate, Math.max(1, dosesRemaining));
   return {
     concentration: Number(concentration.toFixed(2)),
     remainingMg: Number(remainingMg.toFixed(1)),
     dosesRemaining,
     lowSupply: dosesRemaining <= item.lowSupplyThresholdDoses,
-    refillDate: refillDate.toISOString().slice(0, 10),
+    refillDate: toDateKey(projectedRefillDate),
     syringeUnitsPerMg: concentration ? Number((100 / concentration).toFixed(1)) : 0,
   };
 };

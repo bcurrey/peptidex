@@ -5,6 +5,7 @@ import { GoalChip } from "../components/GoalChip";
 import { StatCard } from "../components/StatCard";
 import { Button, Card, Input, ScreenHeader, Select, Textarea } from "../components/ui";
 import { getAppStats } from "../lib/calculations";
+import { localDateInputValue } from "../lib/dates";
 import { AppState, BodyMetricEntry, Goal } from "../types";
 
 const goals: Goal[] = ["Muscle Recovery", "Better Sleep", "Cognitive Edge", "Anti-Aging", "Fat Loss", "Immune Support", "Joint Health", "Stress Reduction"];
@@ -12,7 +13,7 @@ const achievementLabels = ["First Dose", "7-Day Streak", "30-Day Streak", "100 D
 
 export function ProfileScreen({ state, setState, onBack }: { state: AppState; setState: Dispatch<SetStateAction<AppState>>; onBack?: () => void }) {
   const stats = getAppStats(state);
-  const metric = state.bodyMetrics[0] || { id: "metric-new", date: new Date().toISOString().slice(0, 10) };
+  const metric = state.bodyMetrics[0] || { id: "metric-new", date: localDateInputValue() };
 
   const updateMetric = (patch: Partial<BodyMetricEntry>) => {
     const next = { ...metric, ...patch };
@@ -91,11 +92,11 @@ export function ProfileScreen({ state, setState, onBack }: { state: AppState; se
         <p className="eyebrow">Body metrics</p>
         <div className="two-col">
           <Input placeholder="Weight" value={metric.weight || ""} onChange={(e) => updateMetric({ weight: e.target.value })} title="Quick update for your latest weight note." />
-          <Input type="number" min="1" max="10" placeholder="Sleep quality" value={metric.sleepQuality || ""} onChange={(e) => updateMetric({ sleepQuality: Number(e.target.value) })} title="Rate sleep quality from 1 to 10." />
+          <Input inputMode="numeric" placeholder="Sleep quality" value={metric.sleepQuality ?? ""} onChange={(e) => updateMetric({ sleepQuality: e.target.value === "" ? undefined : Number(e.target.value) })} title="Rate sleep quality from 1 to 10." />
         </div>
         <div className="two-col">
-          <Input type="number" min="1" max="10" placeholder="Energy" value={metric.energy || ""} onChange={(e) => updateMetric({ energy: Number(e.target.value) })} title="Rate energy from 1 to 10." />
-          <Input type="number" min="1" max="10" placeholder="Pain level" value={metric.painLevel || ""} onChange={(e) => updateMetric({ painLevel: Number(e.target.value) })} title="Rate pain from 1 to 10." />
+          <Input inputMode="numeric" placeholder="Energy" value={metric.energy ?? ""} onChange={(e) => updateMetric({ energy: e.target.value === "" ? undefined : Number(e.target.value) })} title="Rate energy from 1 to 10." />
+          <Input inputMode="numeric" placeholder="Pain level" value={metric.painLevel ?? ""} onChange={(e) => updateMetric({ painLevel: e.target.value === "" ? undefined : Number(e.target.value) })} title="Rate pain from 1 to 10." />
         </div>
         <Textarea placeholder="Notes" value={metric.notes || ""} onChange={(e) => updateMetric({ notes: e.target.value })} title="Private body metric notes." />
       </Card>

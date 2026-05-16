@@ -36,7 +36,7 @@ export function HomeScreen({
     const date = new Date();
     date.setDate(date.getDate() - (6 - index));
     const key = toDateKey(date);
-    const done = state.doseLogs.some((log) => log.loggedAt.startsWith(key) && log.status === "taken");
+    const done = state.doseLogs.some((log) => toDateKey(new Date(log.loggedAt)) === key && log.status === "taken");
     return { label: date.toLocaleDateString([], { weekday: "short" }).slice(0, 1), done };
   });
   const hour = new Date().getHours();

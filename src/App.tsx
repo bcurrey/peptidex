@@ -8,6 +8,7 @@ import { MoreScreen } from "./screens/MoreScreen";
 import { ProtocolsScreen } from "./screens/ProtocolsScreen";
 import { TrackScreen } from "./screens/TrackScreen";
 import { getPeptide, generateScheduledDoses } from "./lib/calculations";
+import { localDateTime } from "./lib/dates";
 import { loadState, resetState, saveState } from "./lib/storage";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "./types";
 import { Button } from "./components/ui";
@@ -28,19 +29,23 @@ export default function App() {
     return generateScheduledDoses(state.protocols, state.peptides, start, end);
   }, [state.peptides, state.protocols]);
 
-  const nextDose = scheduledDoses.find((dose) => new Date(dose.scheduledAt).getTime() >= Date.now());
+  const nextDose = scheduledDoses.find((dose) =>
+    new Date(dose.scheduledAt).getTime() >= Date.now() &&
+    !state.doseLogs.some((log) => log.scheduledDoseId === dose.id && (log.status === "taken" || log.status === "skipped"))
+  );
   const nextPeptide = nextDose ? getPeptide(state.peptides, nextDose.peptideId) : undefined;
 
   const logDose = (dose: ScheduledDose, status: DoseStatus, notes = "") => {
     setState((current) => {
       const existing = current.doseLogs.find((log) => log.scheduledDoseId === dose.id);
+      const now = new Date();
       const log: DoseLog = {
         id: existing?.id || `log-${crypto.randomUUID()}`,
         scheduledDoseId: dose.id,
         status,
-        loggedAt: new Date().toISOString(),
-        takenAt: status === "taken" ? new Date().toISOString() : existing?.takenAt,
-        takenLate: status === "taken" && new Date(dose.scheduledAt).getTime() + 30 * 60 * 1000 < Date.now(),
+        loggedAt: localDateTime(now),
+        takenAt: status === "taken" ? localDateTime(now) : existing?.takenAt,
+        takenLate: status === "taken" && new Date(dose.scheduledAt).getTime() + 30 * 60 * 1000 < now.getTime(),
         notes,
       };
       return {

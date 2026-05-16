@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { getPeptide } from "../lib/calculations";
+import { dateTimeForInput, localDateTime } from "../lib/dates";
 import { AppState, DoseLog, DoseStatus, ScheduledDose } from "../types";
 import { Card, Input, Select, SectionHeader } from "./ui";
 import { useLongPress } from "../hooks/useLongPress";
@@ -114,9 +115,10 @@ function DoseHistoryRow({
         </Select>
         <Input
           type="datetime-local"
-          value={timestamp.slice(0, 16)}
+          value={dateTimeForInput(timestamp)}
           onChange={(event) => {
-            const nextTime = new Date(event.target.value).toISOString();
+            const nextTime = event.target.value ? localDateTime(new Date(event.target.value)) : "";
+            if (!nextTime) return;
             onUpdateLog({ ...log, loggedAt: nextTime, takenAt: log.status === "taken" ? nextTime : log.takenAt });
           }}
           aria-label="Edit dose timestamp"

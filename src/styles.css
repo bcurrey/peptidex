@@ -153,8 +153,8 @@ h3 { font-size: 15px; line-height: 1.2; }
   gap: 12px;
   min-height: auto;
 }
-.ring-wrap { position: relative; width: 86px; height: 86px; }
-.ring { width: 86px; height: 86px; transform: rotate(-90deg); }
+.ring-wrap { position: relative; flex: 0 0 86px; width: 86px; height: 86px; display: grid; place-items: center; }
+.ring { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring-track, .ring-progress {
   fill: none;
   stroke-width: 9;
@@ -168,12 +168,16 @@ h3 { font-size: 15px; line-height: 1.2; }
 .ring-center {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  align-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
+  pointer-events: none;
 }
-.ring-center strong { font-size: 20px; }
-.ring-center span { color: var(--muted); font-size: 12px; }
+.ring-center strong { display: block; min-width: 44px; font-size: 20px; line-height: 1; font-variant-numeric: tabular-nums; }
+.ring-center span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1; }
 
 .stat-card {
   min-height: 92px;
@@ -1562,6 +1566,15 @@ body {
   border-radius: var(--radius-lg);
 }
 
+.protocol-workflow {
+  min-height: calc(100dvh - 96px);
+}
+
+.protocol-workflow-panel {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-raised);
+}
+
 .protocol-card .mini-progress {
   height: 3px;
 }
@@ -1615,12 +1628,13 @@ body {
 }
 
 .ring-wrap {
+  flex-basis: 56px;
   width: 56px;
   height: 56px;
 }
 
-.ring-center strong { font-size: 16px; }
-.ring-center span { font-size: 10px; }
+.ring-center strong { min-width: 34px; font-size: 16px; }
+.ring-center span { margin-top: 3px; font-size: 10px; }
 
 .score-strip,
 .insight-strip {

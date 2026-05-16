@@ -3,6 +3,7 @@ import { Bell, Plus } from "lucide-react";
 import { ProtocolCard } from "../components/ProtocolCard";
 import { Button, Card, Input, ScreenHeader, Select, Textarea, Toggle } from "../components/ui";
 import { calculateCompliance, getCycleStatus, getCurrentTitrationPhase, vialMathForItem } from "../lib/calculations";
+import { addLocalDays, localDateInputValue } from "../lib/dates";
 import { AppState, DoseMethod, DoseType, DoseUnit, DurationUnit, FrequencyType, Protocol, ProtocolItem, TitrationPhase } from "../types";
 
 const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
@@ -35,8 +36,8 @@ const displayTime = (time: string) => {
 const newProtocol = (): Protocol => ({
   id: "",
   name: "",
-  cycleStartDate: new Date().toISOString().slice(0, 10),
-  cycleEndDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
+  cycleStartDate: localDateInputValue(),
+  cycleEndDate: localDateInputValue(addLocalDays(new Date(), 45)),
   noEndDate: false,
   paused: false,
   completed: false,
@@ -110,6 +111,21 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
     notes: "",
   });
 
+  if (editing) {
+    return (
+      <ProtocolEditor
+        editing={editing}
+        state={state}
+        setEditing={setEditing}
+        saveProtocol={saveProtocol}
+        deleteProtocol={deleteProtocol}
+        addItem={addItem}
+        updateItem={updateItem}
+        newPhase={newPhase}
+      />
+    );
+  }
+
   return (
     <div className="screen">
       <ScreenHeader
@@ -163,11 +179,40 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
         </div>
       </Card>
 
-      {editing && (
-        <Card className="editor-panel">
+    </div>
+  );
+}
+
+function ProtocolEditor({
+  editing,
+  state,
+  setEditing,
+  saveProtocol,
+  deleteProtocol,
+  addItem,
+  updateItem,
+  newPhase,
+}: {
+  editing: Protocol;
+  state: AppState;
+  setEditing: Dispatch<SetStateAction<Protocol | null>>;
+  saveProtocol: () => void;
+  deleteProtocol: () => void;
+  addItem: () => void;
+  updateItem: (item: ProtocolItem) => void;
+  newPhase: (index: number, item: ProtocolItem) => TitrationPhase;
+}) {
+  return (
+    <div className="screen protocol-workflow">
+      <ScreenHeader
+        eyebrow={editing.id ? "Edit protocol" : "Add protocol"}
+        title={editing.id ? editing.name || "Edit Protocol" : "Create Protocol"}
+        action={<button className="text-button" onClick={() => setEditing(null)} title="Cancel and return to protocols.">Cancel</button>}
+      />
+      <Card className="editor-panel protocol-workflow-panel">
           <div className="section-title">
-            <h2>{editing.id ? "Edit Protocol" : "Create Protocol"}</h2>
-            <button className="text-button" onClick={() => setEditing(null)} title="Close the protocol editor.">Close</button>
+            <h2>Basic Details</h2>
+            <span>1 of 7</span>
           </div>
           <Input placeholder="Protocol name" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} title="Name this protocol." />
           <div className="two-col">
@@ -188,7 +233,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
             <button className={editing.completed ? "active" : ""} onClick={() => setEditing({ ...editing, completed: true, paused: false })} title="Mark this protocol as complete.">Complete</button>
           </div>
           <div className="section-title">
-            <h3>Protocol items</h3>
+            <h3>Schedule and Dose</h3>
             <Button variant="ghost" onClick={addItem} title="Add another tracked item to this protocol."><Plus size={16} /> Item</Button>
           </div>
           {editing.items.map((item) => {
@@ -260,7 +305,7 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
                   {item.schedule.frequencyType === "Interval" && (
                     <label className="field-label">
                       <span>Every X days</span>
-                      <Input type="number" min="1" value={item.schedule.intervalEvery || 2} onChange={(e) => updateItem({ ...item, schedule: { ...item.schedule, intervalEvery: Number(e.target.value) || 1 } })} />
+                      <Input inputMode="numeric" value={item.schedule.intervalEvery ?? ""} onChange={(e) => updateItem({ ...item, schedule: { ...item.schedule, intervalEvery: e.target.value === "" ? undefined : Number(e.target.value) } })} onBlur={() => updateItem({ ...item, schedule: { ...item.schedule, intervalEvery: Math.max(1, item.schedule.intervalEvery || 1) } })} />
                     </label>
                   )}
                 </div>
@@ -334,7 +379,6 @@ export function ProtocolsScreen({ state, setState }: { state: AppState; setState
             <Button onClick={saveProtocol} title="Save this protocol to local storage.">Save protocol</Button>
           </div>
         </Card>
-      )}
     </div>
   );
 }
@@ -382,7 +426,7 @@ function TitrationEditor({
               </Select>
             </div>
             <div className="protocol-dose-grid">
-              <Input type="number" min="1" value={phase.duration} onChange={(e) => updatePhase({ ...phase, duration: Number(e.target.value) || 1 })} placeholder="Duration" />
+              <Input inputMode="numeric" value={phase.duration} onChange={(e) => updatePhase({ ...phase, duration: e.target.value === "" ? "" : Number(e.target.value) })} onBlur={() => updatePhase({ ...phase, duration: Math.max(1, Number(phase.duration) || 1) })} placeholder="Duration" />
               <Select value={phase.durationUnit} onChange={(e) => updatePhase({ ...phase, durationUnit: e.target.value as DurationUnit })}>
                 {durationUnits.map((unit) => <option key={unit}>{unit}</option>)}
               </Select>
@@ -465,8 +509,8 @@ function AdvancedProtocolOptions({
       {cycling.enabled && (
         <div className="advanced-fields">
           <div className="protocol-dose-grid">
-            <Input type="number" min="1" value={cycling.activeLength} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, activeLength: Number(e.target.value) || 1 } })} placeholder="Active length" />
-            <Input type="number" min="0" value={cycling.offLength} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, offLength: Number(e.target.value) || 0 } })} placeholder="Off length" />
+            <Input inputMode="numeric" value={cycling.activeLength} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, activeLength: e.target.value === "" ? "" : Number(e.target.value) } })} onBlur={() => updateItem({ ...item, cycling: { ...cycling, activeLength: Math.max(1, Number(cycling.activeLength) || 1) } })} placeholder="Active length" />
+            <Input inputMode="numeric" value={cycling.offLength} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, offLength: e.target.value === "" ? "" : Number(e.target.value) } })} onBlur={() => updateItem({ ...item, cycling: { ...cycling, offLength: Math.max(0, Number(cycling.offLength) || 0) } })} placeholder="Off length" />
           </div>
           <div className="protocol-dose-grid">
             <Select value={cycling.unit} onChange={(e) => updateItem({ ...item, cycling: { ...cycling, unit: e.target.value as "days" | "weeks" } })}>
