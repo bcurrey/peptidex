@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction } from "react";
 import { CalendarCheck, Flame, Target } from "lucide-react";
 import { DoseCard } from "../components/DoseCard";
 import { DoseHistory } from "../components/DoseHistory";
+import { MissedDoseReview } from "../components/MissedDoseReview";
 import { ProgressRing } from "../components/ProgressRing";
 import { StatCard } from "../components/StatCard";
 import { Card, EmptyState, ScreenHeader, SectionHeader } from "../components/ui";
@@ -81,6 +82,8 @@ export function HomeScreen({
         />
       )) : <EmptyState title="No upcoming doses" body="Create or activate a protocol to see scheduled items here." />}
       </section>
+
+      <MissedDoseReview state={state} setState={setState} scheduledDoses={scheduledDoses} />
 
       <section>
         <SectionHeader title="Active protocols" meta={`${activeProtocols.length}`} />

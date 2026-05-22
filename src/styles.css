@@ -2047,3 +2047,16 @@ input[type="checkbox"] {
     width: 100%;
   }
 }
+
+.missed-review-section {
+  display: grid;
+  gap: 12px;
+}
+
+.missed-dose-card {
+  border-left: 3px solid var(--accent-amber);
+}
+
+.catch-up-form {
+  border-color: rgba(245, 158, 11, 0.32);
+}

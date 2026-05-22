@@ -1,8 +1,9 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { Calculator, CalendarClock, ChevronRight, Database, Droplets, FileDown, FlaskConical, Images, Library, RotateCcw, SlidersHorizontal, Syringe, UserRound, Workflow } from "lucide-react";
+import { Calculator, CalendarClock, ChevronRight, ClipboardList, Database, Droplets, FileDown, FlaskConical, Images, Library, RotateCcw, SlidersHorizontal, Syringe, UserRound, Workflow } from "lucide-react";
 import { PeptidesScreen } from "./PeptidesScreen";
+import { MissedDoseReview } from "../components/MissedDoseReview";
 import { ProfileScreen } from "./ProfileScreen";
-import { AppState } from "../types";
+import { AppState, ScheduledDose } from "../types";
 import { Card, ScreenHeader } from "../components/ui";
 
 type MoreView = "hub" | "peptides" | "profile" | "widgets" | string;
@@ -20,6 +21,7 @@ const groups = [
     title: "Health & Tracking",
     items: [
       ["side-effects", "Side Effects", "Track user-entered symptoms/effects", Droplets],
+      ["missed-doses", "Missed Doses", "Review and catch up missed logs", ClipboardList],
       ["bloodwork", "Bloodwork", "Track lab result entries", FlaskConical],
       ["sites", "Injection Sites", "Track and rotate sites", Syringe],
       ["photos", "Progress Photos", "Compare progress photos", Images],
@@ -43,10 +45,16 @@ const groups = [
   },
 ] as const;
 
-export function MoreScreen({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
+export function MoreScreen({ state, setState, scheduledDoses }: { state: AppState; setState: Dispatch<SetStateAction<AppState>>; scheduledDoses: ScheduledDose[] }) {
   const [view, setView] = useState<MoreView>("hub");
   if (view === "peptides") return <PeptidesScreen state={state} setState={setState} onBack={() => setView("hub")} />;
   if (view === "profile" || view === "widgets") return <ProfileScreen state={state} setState={setState} onBack={() => setView("hub")} />;
+  if (view === "missed-doses") return (
+    <div className="screen">
+      <ScreenHeader eyebrow="Review" title="Missed Doses" action={<button className="text-button" onClick={() => setView("hub")}>Back</button>} />
+      <MissedDoseReview state={state} setState={setState} scheduledDoses={scheduledDoses} limit={50} showViewAll={false} />
+    </div>
+  );
 
   return (
     <div className="screen">

@@ -104,7 +104,7 @@ export default function App() {
         {activeTab === "protocols" && <ProtocolsScreen state={state} setState={setState} />}
         {activeTab === "track" && <TrackScreen state={state} setState={setState} scheduledDoses={scheduledDoses} logDose={logDose} />}
         {activeTab === "insights" && <AnalyticsScreen state={state} setState={setState} scheduledDoses={scheduledDoses} />}
-        {activeTab === "more" && <MoreScreen state={state} setState={setState} />}
+        {activeTab === "more" && <MoreScreen state={state} setState={setState} scheduledDoses={scheduledDoses} />}
       </main>
 
       <NextDoseBar dose={nextDose} peptide={nextPeptide} onView={viewNextDose} />
